@@ -1,0 +1,127 @@
+/* Global styles for the asset management application */
+
+body {
+    background-color: #f2f5f9;
+}
+
+/* Card styling */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.35rem;
+}
+
+/* Typography */
+h1.fw-bold, h2.fw-bold, h3.fw-bold, h4.fw-bold, h5.fw-bold, h6.fw-bold {
+    font-weight: 600 !important;
+}
+
+/* Table styling */
+.table thead th {
+    border-bottom: 2px solid #e3e6f0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Button styling */
+.btn-icon-only {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn i {
+    font-size: 1.1rem;
+}
+
+/* Modal styling */
+.modal-content {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header.bg-dark {
+    background-color: #212529 !important;
+}
+
+.modal-header .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Custom Pagination Styles */
+.custom-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    gap: 8px;
+}
+
+.page-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #e3e6f0;
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    background-color: #f8f9fc;
+    color: #000;
+    z-index: 2;
+}
+
+.page-item.active .page-link {
+    background-color: #212529;
+    color: white;
+    border-color: #212529;
+}
+
+.page-item.disabled .page-link {
+    color: #c2c7d0;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #e9ecef;
+}
+
+.page-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+} 
