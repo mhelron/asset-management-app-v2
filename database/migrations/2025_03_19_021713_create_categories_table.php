@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('category');
+            $table->enum('type', ['Asset', 'Accessory', 'Component', 'Consumable', 'License'])->nullable();
             $table->text('desc');
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->json('custom_fields')->nullable();

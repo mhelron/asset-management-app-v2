@@ -49,10 +49,4 @@ class Inventory extends Model {
     {
         return $this->belongsTo(User::class, 'users_id');
     }
-    
-    // Define relationship with components
-    public function components()
-    {
-        return $this->hasMany(Components::class, 'inventory_id');
-    }
 }

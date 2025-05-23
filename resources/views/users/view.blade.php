@@ -41,7 +41,7 @@
                 <h1 class="m-0 fw-bold">User Profile</h1>
             </div>
             <div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+                <ol class="breadcrumb float-sm-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
                     <li class="breadcrumb-item active" aria-current="page">User Profile</li>

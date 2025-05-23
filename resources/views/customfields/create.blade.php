@@ -27,11 +27,11 @@
 <div class="content-header">
     <div class="container">
         <div class="row mb-2">
-            <div class="col-sm-6">
+            <div class="col-md-6">
                 <h1 class="m-0 fw-bold">Add Custom Field</h1>
             </div>
-            <div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+            <div class="col-md-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb float-md-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('customfields.index') }}">Custom Fields</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Add Custom Field</li>
@@ -83,7 +83,7 @@
                                             <option value="1" {{ old('is_required') == '1' ? 'selected' : '' }}>Yes</option>
                                         </select>
                                         @error('is_required')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -106,21 +106,9 @@
                                                 Asset
                                             </label>
                                         </div>
-                                        <div class="form-check me-4 mb-2">
-                                            <input class="form-check-input @error('applies_to') is-invalid @enderror" type="checkbox" name="applies_to[]" value="Accessory" id="accessory-check" {{ is_array(old('applies_to')) && in_array('Accessory', old('applies_to')) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="accessory-check">
-                                                Accessory
-                                            </label>
-                                        </div>
-                                        <div class="form-check me-4 mb-2">
-                                            <input class="form-check-input @error('applies_to') is-invalid @enderror" type="checkbox" name="applies_to[]" value="Component" id="component-check" {{ is_array(old('applies_to')) && in_array('Component', old('applies_to')) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="component-check">
-                                                Component
-                                            </label>
-                                        </div>
                                     </div>
                                     @error('applies_to')
-                                        <div class="text-danger small">{{ $message }}</div>
+                                        <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -132,7 +120,7 @@
                                         <label class="form-label required-label">Description</label>
                                         <textarea type="text" name="desc" class="form-control @error('desc') is-invalid @enderror" placeholder="Enter description">{{ old('desc') }}</textarea>
                                         @error('desc')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -151,7 +139,7 @@
                                             <option value="Select" {{ old('type') == 'Select' ? 'selected' : '' }}>Select Dropdown</option>
                                         </select>
                                         @error('type')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -175,7 +163,7 @@
                                         </div>
                                         
                                         @error('text_type')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -197,7 +185,7 @@
                                         </ul>
                                     </small>
                                     @error('custom_regex')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>

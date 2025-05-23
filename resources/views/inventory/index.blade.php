@@ -37,13 +37,13 @@
 <div class="content-header">
     <div class="container">
         <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0 fw-bold">Assets</h1>
+            <div class="col-md-6">
+                <h1 class="m-0 fw-bold">Inventory</h1>
             </div>
-            <div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+            <div class="col-md-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb float-md-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Assets</li>
+                    <li class="breadcrumb-item active" aria-current="page">Inventory</li>
                 </ol>
             </div>
         </div>  
@@ -73,7 +73,7 @@
                     </div>
                 @endif
                 
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 action-buttons">
                     <div class="view-toggle btn-group">
                         <button type="button" class="btn btn-sm btn-outline-dark active" id="table-view-btn">
                             <i class="bi bi-table"></i> Table
@@ -87,7 +87,7 @@
 
                 <div class="card shadow">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold">Assets List</h5>
+                        <h5 class="m-0 fw-bold">Asset Inventory</h5>
                     </div>
                     <div class="card-body">
                         <!-- Table View -->
@@ -96,14 +96,18 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>#</th>
-                                        <th>Asset</th>
+                                        <th>Asset Name</th>
                                         <th>Image</th>
-                                        <th>Asset Tag</th>
-                                        <th>Serial No.</th>
-                                        <th>Model</th>
+                                        <th>Type</th>
                                         <th>Category</th>
-                                        <th>Status</th>
-                                        <th>Options</th>
+                                        <th>Owner</th>
+                                        <th>Location</th>
+                                        <th>Model No.</th>
+                                        <th>Serial No.</th>
+                                        <th>Asset Tag</th>
+                                        <th>Purchase Date</th>
+                                        <th>Purchased From</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -113,27 +117,31 @@
                                         <td><strong><a href="{{ route('inventory.show', $item->id) }}" class="text-decoration-none">{{ $item->item_name }}</a></strong></td>
                                         <td>
                                             @if($item->image_path)
-                                                <img src="{{ asset('storage/' . $item->image_path) }}" alt="Asset Image" width="100">
+                                                <img src="{{ asset('storage/' . $item->image_path) }}" alt="Asset Image" width="60" height="60" style="object-fit: cover;" class="rounded">
                                             @else
                                                 <span class="text-muted">No image</span>
                                             @endif
                                         </td>
-                                        <td><span class="badge bg-secondary">{{ $item->asset_tag }}</span></td>
-                                        <td>{{ $item->serial_no }}</td>
-                                        <td>{{ $item->model_no }}</td>
+                                        <td>{{ $item->category->type ?? 'N/A' }}</td>
                                         <td>{{ $item->category->category ?? 'N/A' }}</td>
-                                        <td><span class="badge {{ $item->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $item->status }}</span></td>
+                                        <td>{{ $item->user->first_name ?? '' }} {{ $item->user->last_name ?? 'Unassigned' }}</td>
+                                        <td>{{ $item->department->name ?? 'Unassigned' }}</td>
+                                        <td>{{ $item->model_no }}</td>
+                                        <td>{{ $item->serial_no }}</td>
+                                        <td><span class="badge bg-secondary">{{ $item->asset_tag }}</span></td>
+                                        <td>{{ date('M d, Y', strtotime($item->date_purchased)) }}</td>
+                                        <td>{{ $item->purchased_from }}</td>
                                         <td>
                                             <div class="d-flex">
-                                                <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-2">
+                                                <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-1" title="View">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <a href="{{ route('inventory.edit', $item->id) }}" class="btn btn-sm btn-success me-2">
+                                                <a href="{{ route('inventory.edit', $item->id) }}" class="btn btn-sm btn-success me-1" title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-sm btn-secondary archive-btn" 
                                                     data-bs-toggle="modal" data-bs-target="#archiveModal" 
-                                                    data-id="{{ $item->id }}" data-name="{{ $item->item_name }}">
+                                                    data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Archive">
                                                     <i class="bi bi-archive"></i>
                                                 </button>
                                             </div>
@@ -141,7 +149,15 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">No item found</td>
+                                        <td colspan="13" class="text-center py-4">
+                                            <div class="mb-3 text-muted">
+                                                <i class="bi bi-inbox-fill fs-2"></i>
+                                                <p class="mt-2">No assets found in your inventory</p>
+                                            </div>
+                                            <a href="{{ route('inventory.create') }}" class="btn btn-primary">
+                                                <i class="bi bi-plus-lg me-2"></i>Add Your First Asset
+                                            </a>
+                                        </td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -155,7 +171,7 @@
                                 <div class="card h-100 asset-card shadow-sm">
                                     <div class="card-body text-center">
                                         @if($item->image_path)
-                                            <img src="{{ asset('storage/' . $item->image_path) }}" alt="Asset Image" class="img-fluid rounded mb-3" style="height: 100px; object-fit: contain;">
+                                            <img src="{{ asset('storage/' . $item->image_path) }}" alt="Asset Image" class="img-fluid rounded mb-3" style="height: 120px; object-fit: contain;">
                                         @else
                                             <img src="{{ asset('images/default-asset.png') }}" alt="Default Asset" class="img-fluid rounded mb-3" width="80">
                                         @endif
@@ -164,10 +180,8 @@
                                         </h5>
                                         <p class="card-text text-muted small mb-2">{{ $item->category->category ?? 'N/A' }}</p>
                                         <p class="card-text small mb-1"><strong>Tag:</strong> {{ $item->asset_tag }}</p>
-                                        <p class="card-text small"><strong>SN:</strong> {{ $item->serial_no }}</p>
-                                        <div class="mt-2">
-                                            <span class="badge {{ $item->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $item->status }}</span>
-                                        </div>
+                                        <p class="card-text small mb-1"><strong>SN:</strong> {{ $item->serial_no }}</p>
+                                        <p class="card-text small"><strong>Location:</strong> {{ $item->department->name ?? 'Unassigned' }}</p>
                                     </div>
                                     <div class="card-footer bg-transparent border-top-0 d-flex justify-content-center">
                                         <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-2">
@@ -186,8 +200,12 @@
                             </div>
                             @empty
                             <div class="col-12">
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle me-2"></i>No assets found
+                                <div class="alert alert-info text-center py-5">
+                                    <i class="bi bi-inbox-fill fs-2 d-block mb-3"></i>
+                                    <p>No assets found in your inventory</p>
+                                    <a href="{{ route('inventory.create') }}" class="btn btn-primary mt-2">
+                                        <i class="bi bi-plus-lg me-2"></i>Add Your First Asset
+                                    </a>
                                 </div>
                             </div>
                             @endforelse
@@ -248,26 +266,24 @@
                 tableViewBtn.classList.add('active');
                 gridViewBtn.classList.remove('active');
                 
-                // Save preference in local storage
-                localStorage.setItem('inventoryViewPreference', 'table');
+                // Save preference in localStorage
+                localStorage.setItem('inventoryViewMode', 'table');
             });
             
             gridViewBtn.addEventListener('click', function() {
-                gridView.style.display = 'flex';
                 tableView.style.display = 'none';
+                gridView.style.display = 'flex';
                 gridViewBtn.classList.add('active');
                 tableViewBtn.classList.remove('active');
                 
-                // Save preference in local storage
-                localStorage.setItem('inventoryViewPreference', 'grid');
+                // Save preference in localStorage
+                localStorage.setItem('inventoryViewMode', 'grid');
             });
             
-            // Check local storage for saved preference
-            const savedViewPreference = localStorage.getItem('inventoryViewPreference');
-            if (savedViewPreference === 'grid') {
+            // Load saved preference
+            const savedViewMode = localStorage.getItem('inventoryViewMode');
+            if (savedViewMode === 'grid') {
                 gridViewBtn.click();
-            } else {
-                tableViewBtn.click();
             }
         }
     });

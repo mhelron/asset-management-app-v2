@@ -53,10 +53,10 @@
     <div class="container">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0 fw-bold pb-4">My Profile</h1>
+                <h1 class="m-0 fw-bold">My Profile</h1>
             </div>
             <div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+                <ol class="breadcrumb float-sm-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">My Profile</li>
                 </ol>

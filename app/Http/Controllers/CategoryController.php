@@ -26,7 +26,7 @@ class CategoryController extends Controller
         $categories = $query->get();
         
         // Get a list of possible category types for the filter dropdown
-        $categoryTypes = ['Asset', 'Accessory', 'Component', 'Consumable', 'License'];
+        $categoryTypes = ['Asset'];
         
         return view('categories.index', compact('categories', 'categoryTypes'));
     }
@@ -59,7 +59,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'category' => 'required|string|max:255',
             'desc' => 'required|string',
-            'type' => 'nullable|string|in:Asset,Accessory,Component,Consumable,License'
+            'type' => 'nullable|string|in:Asset'
         ]);
 
         // Prepare custom fields data
@@ -102,7 +102,7 @@ class CategoryController extends Controller
             'category' => 'required',
             'desc' => 'required',
             'status' => 'required',
-            'type' => 'nullable|string|in:Asset,Accessory,Component,Consumable,License'
+            'type' => 'nullable|string|in:Asset'
         ]);
         
         // Prepare custom fields data

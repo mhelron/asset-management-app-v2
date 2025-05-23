@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('components', function (Blueprint $table) {
             $table->id();
             $table->string('component_name');
-            $table->string('category');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->string('serial_no')->unique();
             $table->string('model_no');
             $table->string('manufacturer');
@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('date_purchased');
             $table->string('purchased_from');
             $table->text('log_note')->nullable();
+            $table->json('custom_fields')->nullable();
             $table->foreignId('inventory_id')->nullable()->constrained('inventories')->onDelete('set null');
             $table->softDeletes();
             $table->timestamps();

@@ -1,29 +1,19 @@
-
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
-        <button class="btn btn-dark me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand" href="{{ route('dashboard.index') }}">Asset Inventory Management</a>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center" style="margin-left: auto; padding-right: 0;">
-        <li class="nav-item me-2 text-light">
-            <!-- Display the user's name in the navbar -->
-            <span style="display: block; text-align: right; font-size: 0.8em; font-weight: bold;">
-                {{ session('name') }}
-            </span>
-            <!-- Display the user's role below the name, with a smaller font size -->
-            <span style="display: block; text-align: right; font-size: 0.8em; ">
-                {{ session('user_role') }}
-            </span>
-        </li>
-
-        <li class="nav-item">
-            <!-- Display the user's profile picture in the navbar -->
-            <img src="{{ asset('images/default-user.jpg') }}" alt="Profile Picture"class="rounded-circle" width="40" height="40">
-        </li>
-    </ul>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-dark me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="{{ route('dashboard.index') }}">Asset Inventory Management</a>
+        </div>
+        <div class="d-flex align-items-center">
+            <div class="text-light me-2 text-end">
+                <div class="fw-bold" style="font-size: 0.8em;">{{ session('name') }}</div>
+                <div style="font-size: 0.8em;">{{ session('user_role') }}</div>
+            </div>
+            <img src="{{ asset('images/default-user.jpg') }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+        </div>
       </div>
-
     </nav>
     
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
@@ -46,45 +36,10 @@
                 </a>
             </li>   
             <li class="sidebar-item">
-                <a href="#inventoryACollapse" class="sidebar-link d-flex align-items-center" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="inventoryACollapse">
-                    <i class="bi bi-clipboard"></i>
+                <a href="{{ route('inventory.index') }}" class="sidebar-link {{ request()->routeIs('inventory.index', 'inventory.create', 'inventory.edit', 'inventory.show') ? 'active' : '' }}">
+                    <i class="bi bi-box-seam"></i>
                     <span class="ms-2">Inventory</span>
-                    <i class="bi bi-chevron-left ms-auto chevron-icon"></i>
                 </a>
-                <div class="collapse sidebar-collapse" id="inventoryACollapse">
-                    <ul class="sidebar-submenu">
-                        <li class="sidebar-item">
-                            <a href="{{ route('inventory.index') }}" class="sidebar-link {{ request()->routeIs('inventory.index', 'inventory.create', 'inventory.edit') ? 'active' : '' }}">
-                                <i class="bi bi-box-seam"></i>
-                                <span class="ms-2">Assets</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{{ route('components.index') }}" class="sidebar-link {{ request()->routeIs('components.index', 'components.create', 'components.edit') ? 'active' : '' }}">
-                                <i class="bi bi-boxes"></i>
-                                <span class="ms-2">Components</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{{ route('accessory.index') }}" class="sidebar-link {{ request()->routeIs('accessory.index', 'accessory.create', 'accessory.edit') ? 'active' : '' }}">
-                                <i class="bi bi-headphones"></i>
-                                <span class="ms-2">Accessories</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{{ route('accessory.index') }}" class="sidebar-link {{ request()->routeIs('accessory.index', 'accessory.create', 'accessory.edit') ? 'active' : '' }}">
-                                <i class="bi bi-droplet"></i>
-                                <span class="ms-2">Consumables</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{{ route('accessory.index') }}" class="sidebar-link {{ request()->routeIs('accessory.index', 'accessory.create', 'accessory.edit') ? 'active' : '' }}">
-                                <i class="bi bi-key"></i>
-                                <span class="ms-2">Licenses</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
             </li>
             <li class="sidebar-item">
                 <a href="#settingsCollapse" class="sidebar-link d-flex align-items-center" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('customfields.index') || request()->routeIs('categories.index') || request()->routeIs('departments.index') ? 'true' : 'false' }}" aria-controls="settingsCollapse">

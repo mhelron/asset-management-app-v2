@@ -36,7 +36,7 @@
 <div class="content-header">
     <div class="container">
         <div class="row mb-3">
-            <div class="col-sm-12">
+            <div class="col-md-12">
                 <h1 class="m-0 fw-bold pb-4">Dashboard</h1>
             </div>
         </div>
@@ -72,7 +72,7 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Components</h6>
                             <h2 class="mb-0 fw-bold">{{ \App\Models\Components::count() }}</h2>
-                            <a href="{{ route('components.index') }}" class="text-success small">View all components →</a>
+                            <a href="#" class="text-success small">View all components →</a>
                         </div>
                     </div>
                 </div>

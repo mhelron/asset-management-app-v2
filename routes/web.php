@@ -7,8 +7,6 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CustomFieldsController;
 use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\ComponentController;
-use App\Http\Controllers\AccessoryController;
 use App\Http\Controllers\LoginController;
 
 
@@ -27,58 +25,6 @@ Route::middleware(['guest'])->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
-    
-    // Test route for debugging components
-    Route::get('/test-components', function() {
-        $components = App\Models\Components::with('category')->whereNull('inventory_id')->get();
-        return response()->json([
-            'count' => $components->count(),
-            'components' => $components
-        ]);
-    });
-    
-    // Route to create a test component
-    Route::get('/create-test-component', function() {
-        try {
-            // Find a component category
-            $category = App\Models\Category::where('type', 'Component')->first();
-            
-            if (!$category) {
-                // Create a component category if none exists
-                $category = App\Models\Category::create([
-                    'category' => 'Test Component Category',
-                    'desc' => 'Created for testing',
-                    'type' => 'Component',
-                    'status' => 'Active'
-                ]);
-            }
-            
-            // Create a test component
-            $component = App\Models\Components::create([
-                'component_name' => 'Test Component ' . time(),
-                'category_id' => $category->id,
-                'serial_no' => 'TEST-' . time(),
-                'model_no' => 'TEST-MODEL',
-                'manufacturer' => 'Test Manufacturer',
-                'date_purchased' => now(),
-                'purchased_from' => 'Test Store',
-                'inventory_id' => null, // Not associated with any asset
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Test component created',
-                'component' => $component,
-                'category' => $category
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
-        }
-    });
     
     // Dasbord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');   
@@ -145,32 +91,4 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update-department/{id}', [DepartmentController::class, 'update'])->name('departments.update');
         Route::delete('/archive-department/{id}', [DepartmentController::class, 'archive'])->name('departments.archive');
     });
-
-    // Component Routes
-    Route::prefix('/components')->group(function () {
-        Route::get('/', [ComponentController::class, 'index'])->name('components.index');
-        Route::get('create-component', [ComponentController::class, 'create'])->name('components.create');
-        Route::get('show-component/{id}', [ComponentController::class, 'show'])->name('components.show');
-        Route::post('create-component', [ComponentController::class, 'store'])->name('components.store');
-        Route::get('edit-component/{id}', [ComponentController::class, 'edit'])->name('components.edit');
-        Route::put('update-component/{id}', [ComponentController::class, 'update'])->name('components.update');
-        Route::delete('/archive-component/{id}', [ComponentController::class, 'archive'])->name('components.archive');
-        
-        // New routes for component association
-        Route::get('available', [ComponentController::class, 'getAvailableComponents']);
-        Route::post('associate/{id}', [ComponentController::class, 'associateWithAsset']);
-        Route::post('quick-add', [ComponentController::class, 'quickAdd']);
-    });
-
-    // Component Routes
-    Route::prefix('/accessories')->group(function () {
-        Route::get('/', [AccessoryController::class, 'index'])->name('accessory.index');
-        Route::get('create-accessory', [AccessoryController::class, 'create'])->name('accessory.create');
-        Route::get('show-accessory/{id}', [AccessoryController::class, 'show'])->name('accessory.show');
-        Route::post('create-accessory', [AccessoryController::class, 'store'])->name('accessory.store');
-        Route::get('edit-accessory/{id}', [AccessoryController::class, 'edit'])->name('accessory.edit');
-        Route::put('update-accessory/{id}', [AccessoryController::class, 'update'])->name('accessory.update');
-        Route::delete('/archive-accessory/{id}', [AccessoryController::class, 'archive'])->name('accessory.archive');
-    });
-
 });

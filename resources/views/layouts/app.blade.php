@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Assset Management System</title>
+    <title>Asset Management System</title>
 
     <!-- Custom Toast Styles -->
     <style>
@@ -26,6 +26,53 @@
 
     .btn-close {
         font-size: 20px;
+    }
+    
+    /* Responsive fixes */
+    @media (max-width: 767px) {
+        .container-fluid {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .navbar-brand {
+            font-size: 0.9rem;
+            max-width: 60%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .main {
+            padding: 10px !important;
+        }
+        .content-wrapper {
+            padding: 0;
+        }
+        /* Global header and breadcrumb styles */
+        .content-header .row {
+            text-align: left;
+        }
+        .breadcrumb {
+            justify-content: flex-start;
+            float: none !important;
+            padding-left: 0;
+            margin-top: 0.5rem;
+        }
+        /* Action buttons layout */
+        .action-buttons, 
+        .d-flex.justify-content-between.align-items-center.mb-3 {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100%;
+        }
+    }
+    
+    /* Fix for user info in navbar */
+    @media (max-width: 480px) {
+        .navbar .text-light {
+            display: none;
+        }
     }
     </style>
 

@@ -27,11 +27,11 @@
 <div class="content-header">
 	<div class="container">
         <div class="row mb-2">
-			<div class="col-sm-6">
+			<div class="col-md-6">
 				<h1 class="m-0 fw-bold">Edit User</h1>
 			</div>
-			<div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+			<div class="col-md-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb float-md-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Edit User</li>

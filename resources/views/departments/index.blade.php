@@ -28,11 +28,11 @@
 <div class="content-header">
     <div class="container">
         <div class="row mb-2">
-            <div class="col-sm-6">
+            <div class="col-md-6">
                 <h1 class="m-0 fw-bold">Departments</h1>
             </div>
-            <div class="col-sm-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
+            <div class="col-md-6" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb float-md-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Departments</li>
                 </ol>
@@ -66,7 +66,7 @@
                     </div>
                 @endif
 
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-end mb-3 action-buttons">
                     <a href="{{ route('departments.create') }}" class="btn btn-dark"><i class="bi bi-plus-lg me-2"></i>Add Department</a>
                 </div>
 
