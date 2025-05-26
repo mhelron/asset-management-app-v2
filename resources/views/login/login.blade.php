@@ -72,17 +72,17 @@
             @endif
 
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}" autocomplete="on">
               @csrf
 
               <div class="mb-3">
                 <label for="email" class="form-label">Email Address</label>
-                <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required autofocus>
+                <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required autofocus autocomplete="email">
               </div>
 
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" name="password" id="password" class="form-control" required>
+                <input type="password" name="password" id="password" class="form-control" required autocomplete="current-password">
               </div>
 
               <div class="form-check mb-3">
@@ -93,12 +93,12 @@
               <div class="d-grid mb-3">
                 <button type="submit" class="btn btn-primary">Login</button>
               </div>
-              <!--
+
               <div class="text-center">
                   <small>Forgot your password? 
                       <a href="#" onclick="alert('This feature is not working yet. Di pa sya nagana mag hintay ka muna'); return false;">Click Here</a>
                   </small>
-              </div> -->
+              </div> 
             </form>
           </div>
         </div>

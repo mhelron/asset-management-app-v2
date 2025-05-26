@@ -63,8 +63,10 @@ class LoginController extends Controller
             return back()->withInput([])->with('error', 'User not found. Please try again');
         }
 
+        // Checks if user has remember token (Para sa remember me)
+        $remember = $request->has('remember');
         // Email exists, now check credentials
-        if (Auth::attempt(['email' => $email, 'password' => $password])) {
+        if (Auth::attempt(['email' => $email, 'password' => $password], $remember)) {
             $request->session()->regenerate();
             session(['email' => Auth::user()->email]);
 
