@@ -8,6 +8,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CustomFieldsController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\AssetTypeController;
+use App\Http\Controllers\LocationController;
 
 
 //Logout Route
@@ -60,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     // Inventory Route
     Route::prefix('/inventory')->group(function () {
         Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::get('/data', [InventoryController::class, 'getInventoryData'])->name('inventory.data');
         Route::get('add-inventory', [InventoryController::class, 'create'])->name('inventory.create');
         Route::post('add-inventory', [InventoryController::class, 'store'])->name('inventory.store');
         Route::get('edit-inventory/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
@@ -69,6 +72,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('get-category-fields/{id}', [InventoryController::class, 'getCategoryFields'])->name('inventory.category.fields');
         Route::get('get-item-details/{id}', [InventoryController::class, 'getItemDetails']);
         Route::get('get-custom-fields/{id}', [InventoryController::class, 'getCustomFields']);
+        Route::post('add-note/{id}', [InventoryController::class, 'addNote'])->name('inventory.add-note');
+        Route::put('update-note/{inventory}/{note}', [InventoryController::class, 'updateNote'])->name('inventory.update-note');
+        Route::delete('delete-note/{inventory}/{note}', [InventoryController::class, 'deleteNote'])->name('inventory.delete-note');
     });
 
     // Custom Fields Route
@@ -90,5 +96,25 @@ Route::middleware(['auth'])->group(function () {
         Route::get('edit-department/{id}', [DepartmentController::class, 'edit'])->name('departments.edit');
         Route::put('update-department/{id}', [DepartmentController::class, 'update'])->name('departments.update');
         Route::delete('/archive-department/{id}', [DepartmentController::class, 'archive'])->name('departments.archive');
+    });
+
+    // Asset Type Routes
+    Route::prefix('/asset-types')->group(function () {
+        Route::get('/', [AssetTypeController::class, 'index'])->name('asset-types.index');
+        Route::get('create-asset-type', [AssetTypeController::class, 'create'])->name('asset-types.create');
+        Route::post('create-asset-type', [AssetTypeController::class, 'store'])->name('asset-types.store');
+        Route::get('edit-asset-type/{id}', [AssetTypeController::class, 'edit'])->name('asset-types.edit');
+        Route::put('update-asset-type/{id}', [AssetTypeController::class, 'update'])->name('asset-types.update');
+        Route::delete('/archive-asset-type/{id}', [AssetTypeController::class, 'archive'])->name('asset-types.archive');
+    });
+
+    // Location Routes
+    Route::prefix('/locations')->group(function () {
+        Route::get('/', [LocationController::class, 'index'])->name('locations.index');
+        Route::get('create-location', [LocationController::class, 'create'])->name('locations.create');
+        Route::post('create-location', [LocationController::class, 'store'])->name('locations.store');
+        Route::get('edit-location/{id}', [LocationController::class, 'edit'])->name('locations.edit');
+        Route::put('update-location/{id}', [LocationController::class, 'update'])->name('locations.update');
+        Route::delete('/archive-location/{id}', [LocationController::class, 'archive'])->name('locations.archive');
     });
 });

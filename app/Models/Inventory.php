@@ -23,7 +23,9 @@ class Inventory extends Model {
         'image_path',
         'log_note',
         'custom_fields', 
-        'status'
+        'status',
+        'asset_type_id',
+        'location_id'
     ];
 
     protected $casts = [
@@ -48,5 +50,23 @@ class Inventory extends Model {
     public function user()
     {
         return $this->belongsTo(User::class, 'users_id');
+    }
+
+    public function assetType()
+    {
+        return $this->belongsTo(AssetType::class, 'asset_type_id');
+    }
+    
+    public function location()
+    {
+        return $this->belongsTo(Location::class, 'location_id');
+    }
+    
+    /**
+     * Get the notes for the asset.
+     */
+    public function notes()
+    {
+        return $this->hasMany(AssetNote::class, 'inventory_id');
     }
 }

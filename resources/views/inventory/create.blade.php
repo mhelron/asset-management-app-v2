@@ -1,5 +1,48 @@
 @extends('layouts.app')
 @section('content')
+<!-- Add custom styles for assignment buttons -->
+<style>
+    .assignment-toggle .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border: 1px solid #dee2e6;
+        background-color: white;
+        color: #333;
+    }
+    .assignment-toggle .btn.active, 
+    .btn-outline-secondary.active {
+        background-color: #343a40;
+        color: white;
+        font-weight: 500;
+        box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    }
+    .assignment-section {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    /* Ensure dropdowns are visible and well-styled */
+    .assignment-section select {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    /* Add margin to make dropdown more visible */
+    #user_assignment, #department_assignment, #location_assignment {
+        margin-top: 10px;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+</style>
 <!-- Content Header -->
 <div class="content-header">
     <div class="container">
@@ -69,6 +112,24 @@
                             </div>
 
                             <div class="row">
+                                <!-- Asset Type -->
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="asset_type_id">Asset Type<span class="text-danger"> *</span></label>
+                                        <select name="asset_type_id" id="asset_type_id" class="form-control">
+                                            <option value="" disabled selected>Select an asset type</option>
+                                            @foreach ($assetTypes as $assetType)
+                                                <option value="{{ $assetType->id }}" {{ old('asset_type_id') == $assetType->id ? 'selected' : '' }}>
+                                                    {{ $assetType->name }} 
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('asset_type_id', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Asset Tag<span class="text-danger"> *</span></label>
@@ -78,7 +139,9 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
                 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Serial Number<span class="text-danger"> *</span></label>
@@ -88,9 +151,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Model Number<span class="text-danger"> *</span></label>
@@ -100,7 +161,9 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
                 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Date Purchased<span class="text-danger"> *</span></label>
@@ -110,9 +173,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Manufacturer<span class="text-danger"> *</span></label>
@@ -122,7 +183,9 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+                            </div>
+                
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Purchased From<span class="text-danger"> *</span></label>
@@ -132,9 +195,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
-                
-                            <div class="row">
+                                
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Asset Image</label>
@@ -153,48 +214,51 @@
                                 </div>
                             </div>
                 
-                            <!-- Asset Note -->
                             <div class="form-group mb-3">
-                                <label>Asset Note</label>
-                                <textarea name="log_note" class="form-control" placeholder="Enter any notes about this asset">{{ old('log_note') }}</textarea>
-                                @error('log_note', 'inventoryForm')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Asset Owner</label>
-                                        <select name="users_id" id="user_id" class="form-control">
-                                            <option value="" selected>Select a User</option>
-                                            @foreach($users as $user)
-                                                <option value="{{ $user->id }}" data-department="{{ $user->department_id }}" {{ old('users_id') == $user->id ? 'selected' : '' }}>
-                                                    {{ $user->first_name }} {{$user->last_name}}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('users_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                <label>Owner</label>
+                                <div class="btn-group mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" id="user-btn" onclick="showUserDropdown()">
+                                        <i class="bi bi-person"></i> User
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="department-btn" onclick="showDepartmentDropdown()">
+                                        <i class="bi bi-building"></i> Department
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="location-btn" onclick="showLocationDropdown()">
+                                        <i class="bi bi-geo-alt"></i> Location
+                                    </button>
                                 </div>
-                            
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Asset Location</label>
-                                        <select name="department_id" id="department_id" class="form-control">
-                                            <option value="" selected>Select a Department</option>
-                                            @foreach($departments as $department)
-                                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
-                                                    {{ $department->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('department_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                
+                                <div id="user_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="users_id" id="user_id" class="form-select">
+                                        <option value="">Select a User</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" data-department="{{ $user->department_id }}" {{ old('users_id') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->first_name }} {{$user->last_name}}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div id="department_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="department_id" id="department_id" class="form-select">
+                                        <option value="">Select a Department</option>
+                                        @foreach($departments as $department)
+                                            <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                                                {{ $department->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div id="location_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="location_id" id="location_id" class="form-select">
+                                        <option value="">Select a Location</option>
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location->id }}" {{ old('location_id') == $location->id ? 'selected' : '' }}>
+                                                {{ $location->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                                                     
@@ -274,6 +338,9 @@
                                 @endforeach
                             </div>
 
+                            <!-- Category-specific Custom Fields -->
+                            <div id="category-fields-container"></div>
+
                             <div class="d-flex justify-content-end mt-4">
                                 <button type="reset" class="btn btn-secondary me-2">Reset</button>
                                 <button type="submit" class="btn btn-primary">Save Asset</button>
@@ -286,9 +353,106 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
+    // Simple function to hide all dropdowns
+    function hideAllDropdowns() {
+        try {
+            document.getElementById('user_assignment').style.display = 'none';
+            document.getElementById('department_assignment').style.display = 'none';
+            document.getElementById('location_assignment').style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.getElementById('user-btn').classList.remove('active');
+            document.getElementById('department-btn').classList.remove('active');
+            document.getElementById('location-btn').classList.remove('active');
+        } catch (e) {
+            console.error('Error in hideAllDropdowns:', e);
+        }
+    }
+    
+    // Functions to show specific dropdowns
+    function showUserDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('user_assignment').style.display = 'block';
+            document.getElementById('user-btn').classList.add('active');
+            console.log('User dropdown shown');
+        } catch (e) {
+            console.error('Error in showUserDropdown:', e);
+        }
+    }
+    
+    function showDepartmentDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('department_assignment').style.display = 'block';
+            document.getElementById('department-btn').classList.add('active');
+            console.log('Department dropdown shown');
+        } catch (e) {
+            console.error('Error in showDepartmentDropdown:', e);
+        }
+    }
+    
+    function showLocationDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('location_assignment').style.display = 'block';
+            document.getElementById('location-btn').classList.add('active');
+            console.log('Location dropdown shown');
+        } catch (e) {
+            console.error('Error in showLocationDropdown:', e);
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded');
+        
+        // Get button and dropdown elements
+        const userBtn = document.getElementById('user-btn');
+        const departmentBtn = document.getElementById('department-btn');
+        const locationBtn = document.getElementById('location-btn');
+        
+        // Debug element existence
+        console.log('Elements found:', {
+            userBtn: userBtn,
+            departmentBtn: departmentBtn,
+            locationBtn: locationBtn
+        });
+        
+        // Set button click handlers
+        userBtn.addEventListener('click', showUserDropdown);
+        departmentBtn.addEventListener('click', showDepartmentDropdown);
+        locationBtn.addEventListener('click', showLocationDropdown);
+        
+        // Set initial active state
+        try {
+            // Check if user is selected
+            const userSelected = {{ old('users_id') ? 'true' : 'false' }};
+            const departmentSelected = {{ old('department_id') && !old('users_id') ? 'true' : 'false' }};
+            const locationSelected = {{ old('location_id') && !old('users_id') && !old('department_id') ? 'true' : 'false' }};
+            
+            console.log('Initial selection state:', {
+                userSelected: userSelected,
+                departmentSelected: departmentSelected,
+                locationSelected: locationSelected
+            });
+            
+            if (userSelected) {
+                showUserDropdown();
+            } else if (departmentSelected) {
+                showDepartmentDropdown();
+            } else if (locationSelected) {
+                showLocationDropdown();
+            } else {
+                // Default to user if nothing is selected
+                showUserDropdown();
+            }
+        } catch (error) {
+            console.error('Error setting initial state:', error);
+            // Default fallback
+            showUserDropdown();
+        }
+
         // Image preview
         const imageInput = document.querySelector('input[name="asset_image"]');
         const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -323,7 +487,136 @@
                 }
             });
         }
+        
+        // Load category-specific custom fields when category is selected
+        const categorySelect = document.getElementById('category_select');
+        const categoryFieldsContainer = document.getElementById('category-fields-container');
+        
+        if (categorySelect && categoryFieldsContainer) {
+            categorySelect.addEventListener('change', function() {
+                const categoryId = this.value;
+                
+                if (categoryId) {
+                    // Fetch category-specific custom fields
+                    fetch(`/inventory/get-category-fields/${categoryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Clear previous fields
+                            categoryFieldsContainer.innerHTML = '';
+                            
+                            if (data.length > 0) {
+                                // Add header
+                                const header = document.createElement('h5');
+                                header.className = 'mt-4 mb-3';
+                                header.textContent = 'Category-specific Fields';
+                                categoryFieldsContainer.appendChild(header);
+                                
+                                // Add each custom field
+                                data.forEach(field => {
+                                    const fieldDiv = document.createElement('div');
+                                    fieldDiv.className = 'form-group mb-3';
+                                    
+                                    // Create label
+                                    const label = document.createElement('label');
+                                    label.textContent = field.name;
+                                    
+                                    if (field.is_required) {
+                                        const requiredSpan = document.createElement('span');
+                                        requiredSpan.className = 'text-danger';
+                                        requiredSpan.textContent = ' *';
+                                        label.appendChild(requiredSpan);
+                                    }
+                                    
+                                    fieldDiv.appendChild(label);
+                                    
+                                    // Create input based on field type
+                                    let input;
+                                    
+                                    switch (field.type) {
+                                        case 'Text':
+                                            input = document.createElement('input');
+                                            input.type = 'text';
+                                            input.className = 'form-control';
+                                            input.name = `custom_fields[${field.name}]`;
+                                            if (field.is_required) input.required = true;
+                                            break;
+                                            
+                                        case 'Select':
+                                            input = document.createElement('select');
+                                            input.className = 'form-control';
+                                            input.name = `custom_fields[${field.name}]`;
+                                            
+                                            // Add default option
+                                            const defaultOption = document.createElement('option');
+                                            defaultOption.value = '';
+                                            defaultOption.textContent = 'Select an option';
+                                            input.appendChild(defaultOption);
+                                            
+                                            // Add options
+                                            const fieldOptions = JSON.parse(field.options);
+                                            fieldOptions.forEach((option, index) => {
+                                                const optionEl = document.createElement('option');
+                                                optionEl.value = option;
+                                                optionEl.textContent = option;
+                                                input.appendChild(optionEl);
+                                            });
+                                            
+                                            if (field.is_required) input.required = true;
+                                            break;
+                                            
+                                        case 'Checkbox':
+                                            input = document.createElement('div');
+                                            
+                                            const checkboxOptions = JSON.parse(field.options);
+                                            checkboxOptions.forEach((option, index) => {
+                                                const checkDiv = document.createElement('div');
+                                                checkDiv.className = 'form-check';
+                                                
+                                                const checkbox = document.createElement('input');
+                                                checkbox.type = 'checkbox';
+                                                checkbox.className = 'form-check-input';
+                                                checkbox.name = `custom_fields[${field.name}][]`;
+                                                checkbox.value = option;
+                                                checkbox.id = `${field.name}_${index}`;
+                                                
+                                                const checkLabel = document.createElement('label');
+                                                checkLabel.className = 'form-check-label';
+                                                checkLabel.htmlFor = `${field.name}_${index}`;
+                                                checkLabel.textContent = option;
+                                                
+                                                checkDiv.appendChild(checkbox);
+                                                checkDiv.appendChild(checkLabel);
+                                                input.appendChild(checkDiv);
+                                            });
+                                            break;
+                                            
+                                        default:
+                                            input = document.createElement('input');
+                                            input.type = 'text';
+                                            input.className = 'form-control';
+                                            input.name = `custom_fields[${field.name}]`;
+                                            if (field.is_required) input.required = true;
+                                    }
+                                    
+                                    fieldDiv.appendChild(input);
+                                    categoryFieldsContainer.appendChild(fieldDiv);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching category fields:', error);
+                        });
+                } else {
+                    // Clear the container if no category is selected
+                    categoryFieldsContainer.innerHTML = '';
+                }
+            });
+            
+            // Trigger the change event if a category is already selected (for page reload with validation errors)
+            if (categorySelect.value) {
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+        }
     });
 </script>
-@endpush
 @endsection

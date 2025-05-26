@@ -55,9 +55,9 @@
                             <i class="bi bi-box-seam text-primary" style="font-size: 2rem;"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1">Total Assets</h6>
+                            <h6 class="text-muted mb-1">Total Items</h6>
                             <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::count() }}</h2>
-                            <a href="{{ route('inventory.index') }}" class="text-primary small">View all assets →</a>
+                            <a href="{{ route('inventory.index') }}" class="text-primary small">View all Items →</a>
                         </div>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                             <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1">Unassigned Assets</h6>
+                            <h6 class="text-muted mb-1">Unassigned Items</h6>
                             <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::whereNull('users_id')->count() }}</h2>
                             <a href="{{ route('inventory.index') }}" class="text-warning small">View unassigned →</a>
                         </div>

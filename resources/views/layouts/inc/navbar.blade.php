@@ -42,13 +42,19 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#settingsCollapse" class="sidebar-link d-flex align-items-center" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('customfields.index') || request()->routeIs('categories.index') || request()->routeIs('departments.index') ? 'true' : 'false' }}" aria-controls="settingsCollapse">
+                <a href="#settingsCollapse" class="sidebar-link d-flex align-items-center" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('customfields.index') || request()->routeIs('categories.index') || request()->routeIs('departments.index') || request()->routeIs('asset-types.index') || request()->routeIs('locations.index') ? 'true' : 'false' }}" aria-controls="settingsCollapse">
                     <i class="bi bi-gear"></i>
                     <span class="ms-2">Settings</span>
                     <i class="bi bi-chevron-left ms-auto chevron-icon"></i>
                 </a>
-                <div class="collapse sidebar-collapse {{ request()->routeIs('customfields.index') || request()->routeIs('categories.index') || request()->routeIs('departments.index') ? 'show' : '' }}" id="settingsCollapse">
+                <div class="collapse sidebar-collapse {{ request()->routeIs('customfields.index') || request()->routeIs('categories.index') || request()->routeIs('departments.index') || request()->routeIs('asset-types.index') || request()->routeIs('locations.index') ? 'show' : '' }}" id="settingsCollapse">
                     <ul class="sidebar-submenu">
+                        <li class="sidebar-item">
+                            <a href="{{ route('asset-types.index') }}" class="sidebar-link {{ request()->routeIs('asset-types.index', 'asset-types.create', 'asset-types.edit') ? 'active' : '' }}">
+                                <i class="bi bi-tags"></i>
+                                <span class="ms-2">Asset Types</span>
+                            </a>
+                        </li>
                         <li class="sidebar-item">
                             <a href="{{ route('customfields.index') }}" class="sidebar-link {{ request()->routeIs('customfields.index', 'customfields.create', 'customfields.edit') ? 'active' : '' }}">
                                 <i class="bi bi-wrench"></i>
@@ -62,15 +68,21 @@
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.index', 'users.create', 'users.edit', 'users.view ') ? 'active' : '' }}"">
-                                <i class="bi bi-people"></i>
-                                <span class="ms-2">Users</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
                             <a href="{{ route('departments.index') }}" class="sidebar-link {{ request()->routeIs('departments.index', 'department.create', 'department.edit') ? 'active' : '' }}">
                                 <i class="bi bi-building"></i>
                                 <span class="ms-2">Departments</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('locations.index') }}" class="sidebar-link {{ request()->routeIs('locations.index', 'locations.create', 'locations.edit') ? 'active' : '' }}">
+                                <i class="bi bi-geo-alt"></i>
+                                <span class="ms-2">Locations</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.index', 'users.create', 'users.edit', 'users.view ') ? 'active' : '' }}"">
+                                <i class="bi bi-people"></i>
+                                <span class="ms-2">Users</span>
                             </a>
                         </li>
                         <li class="sidebar-item">

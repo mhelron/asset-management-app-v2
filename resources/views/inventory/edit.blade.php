@@ -2,6 +2,45 @@
 
 @section('content')
 
+<!-- Add custom styles for assignment buttons -->
+<style>
+    .assignment-toggle .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .assignment-toggle .btn.active, 
+    .btn-outline-secondary.active {
+        background-color: #343a40;
+        color: white;
+    }
+    .assignment-section {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    /* Ensure dropdowns are visible and well-styled */
+    .assignment-section select {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    /* Add margin to make dropdown more visible */
+    #user_assignment, #department_assignment, #location_assignment {
+        margin-top: 10px;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+</style>
+
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container">
@@ -153,48 +192,51 @@
                                 </div>
                             </div>
                 
-                            <!-- Asset Note -->
                             <div class="form-group mb-3">
-                                <label>Asset Note</label>
-                                <textarea name="log_note" class="form-control" placeholder="Enter any notes about this asset">{{ old('log_note', $inventoryItem->log_note) }}</textarea>
-                                @error('log_note', 'inventoryForm')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Asset Owner</label>
-                                        <select name="users_id" id="user_id" class="form-control">
-                                            <option value="">Select a User</option>
-                                            @foreach($users ?? [] as $user)
-                                                <option value="{{ $user->id }}" data-department="{{ $user->department_id }}" {{ old('users_id', $inventoryItem->users_id) == $user->id ? 'selected' : '' }}>
-                                                    {{ $user->first_name }} {{$user->last_name}}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('users_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                <label>Owner</label>
+                                <div class="btn-group mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" id="user-btn" onclick="showUserDropdown()">
+                                        <i class="bi bi-person"></i> User
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="department-btn" onclick="showDepartmentDropdown()">
+                                        <i class="bi bi-building"></i> Department
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="location-btn" onclick="showLocationDropdown()">
+                                        <i class="bi bi-geo-alt"></i> Location
+                                    </button>
                                 </div>
-                            
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Asset Location</label>
-                                        <select name="department_id" id="department_id" class="form-control">
-                                            <option value="">Select a Department</option>
-                                            @foreach($departments ?? [] as $department)
-                                                <option value="{{ $department->id }}" {{ old('department_id', $inventoryItem->department_id) == $department->id ? 'selected' : '' }}>
-                                                    {{ $department->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('department_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                
+                                <div id="user_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="users_id" id="user_id" class="form-select">
+                                        <option value="">Select a User</option>
+                                        @foreach($users ?? [] as $user)
+                                            <option value="{{ $user->id }}" data-department="{{ $user->department_id }}" {{ old('users_id', $inventoryItem->users_id) == $user->id ? 'selected' : '' }}>
+                                                {{ $user->first_name }} {{$user->last_name}}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div id="department_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="department_id" id="department_id" class="form-select">
+                                        <option value="">Select a Department</option>
+                                        @foreach($departments ?? [] as $department)
+                                            <option value="{{ $department->id }}" {{ old('department_id', $inventoryItem->department_id) == $department->id ? 'selected' : '' }}>
+                                                {{ $department->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div id="location_assignment" class="assignment-section" style="display: none; margin-top: 10px;">
+                                    <select name="location_id" id="location_id" class="form-select">
+                                        <option value="">Select a Location</option>
+                                        @foreach($locations ?? [] as $location)
+                                            <option value="{{ $location->id }}" {{ old('location_id', $inventoryItem->location_id) == $location->id ? 'selected' : '' }}>
+                                                {{ $location->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                                                     
@@ -387,57 +429,135 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Image preview
-        const imageInput = document.querySelector('input[name="asset_image"]');
-        if (imageInput) {
-            imageInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        let imagePreview = document.getElementById('image-preview');
-                        if (!imagePreview) {
-                            // Create preview container if it doesn't exist
-                            const previewContainer = document.createElement('div');
-                            previewContainer.className = 'mt-2';
-                            previewContainer.id = 'image-preview-container';
-                            
-                            imagePreview = document.createElement('img');
-                            imagePreview.id = 'image-preview';
-                            imagePreview.style.maxWidth = '100%';
-                            imagePreview.style.maxHeight = '200px';
-                            imagePreview.alt = 'Asset Image Preview';
-                            
-                            previewContainer.appendChild(imagePreview);
-                            imageInput.parentNode.appendChild(previewContainer);
-                        }
-                        
-                        imagePreview.src = e.target.result;
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
+    // Simple function to hide all dropdowns
+    function hideAllDropdowns() {
+        try {
+            document.getElementById('user_assignment').style.display = 'none';
+            document.getElementById('department_assignment').style.display = 'none';
+            document.getElementById('location_assignment').style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.getElementById('user-btn').classList.remove('active');
+            document.getElementById('department-btn').classList.remove('active');
+            document.getElementById('location-btn').classList.remove('active');
+        } catch (e) {
+            console.error('Error in hideAllDropdowns:', e);
         }
-
-        // Automatically set department when user is selected
-        const userSelect = document.getElementById('user_id');
-        const departmentSelect = document.getElementById('department_id');
-        
-        if (userSelect && departmentSelect) {
-            userSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    const departmentId = selectedOption.getAttribute('data-department');
-                    if (departmentId) {
-                        departmentSelect.value = departmentId;
-                    }
-                }
-            });
+    }
+    
+    // Functions to show specific dropdowns
+    function showUserDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('user_assignment').style.display = 'block';
+            document.getElementById('user-btn').classList.add('active');
+            console.log('User dropdown shown');
+        } catch (e) {
+            console.error('Error in showUserDropdown:', e);
+        }
+    }
+    
+    function showDepartmentDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('department_assignment').style.display = 'block';
+            document.getElementById('department-btn').classList.add('active');
+            console.log('Department dropdown shown');
+        } catch (e) {
+            console.error('Error in showDepartmentDropdown:', e);
+        }
+    }
+    
+    function showLocationDropdown() {
+        try {
+            hideAllDropdowns();
+            document.getElementById('location_assignment').style.display = 'block';
+            document.getElementById('location-btn').classList.add('active');
+            console.log('Location dropdown shown');
+        } catch (e) {
+            console.error('Error in showLocationDropdown:', e);
+        }
+    }
+    
+    // Set initial state when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            console.log('DOM loaded, setting initial owner selection state');
+            
+            // Check if user is selected
+            const userSelected = {{ old('users_id', $inventoryItem->users_id) ? 'true' : 'false' }};
+            const departmentSelected = {{ old('department_id', $inventoryItem->department_id) && !old('users_id', $inventoryItem->users_id) ? 'true' : 'false' }};
+            const locationSelected = {{ old('location_id', $inventoryItem->location_id) && !old('users_id', $inventoryItem->users_id) && !old('department_id', $inventoryItem->department_id) ? 'true' : 'false' }};
+            
+            console.log('Initial state values:', { userSelected, departmentSelected, locationSelected });
+            
+            // Set button click handlers
+            document.getElementById('user-btn').addEventListener('click', showUserDropdown);
+            document.getElementById('department-btn').addEventListener('click', showDepartmentDropdown);
+            document.getElementById('location-btn').addEventListener('click', showLocationDropdown);
+            
+            if (userSelected) {
+                showUserDropdown();
+            } else if (departmentSelected) {
+                showDepartmentDropdown();
+            } else if (locationSelected) {
+                showLocationDropdown();
+            } else {
+                // Default to user if nothing is selected
+                showUserDropdown();
+            }
+        } catch (e) {
+            console.error('Error in DOMContentLoaded:', e);
         }
     });
+
+    // Image preview
+    const imageInput = document.querySelector('input[name="asset_image"]');
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let imagePreview = document.getElementById('image-preview');
+                    if (!imagePreview) {
+                        // Create preview container if it doesn't exist
+                        const previewContainer = document.createElement('div');
+                        previewContainer.className = 'mt-2';
+                        previewContainer.id = 'image-preview-container';
+                        
+                        imagePreview = document.createElement('img');
+                        imagePreview.id = 'image-preview';
+                        imagePreview.style.maxWidth = '100%';
+                        imagePreview.style.maxHeight = '200px';
+                        imagePreview.alt = 'Asset Image Preview';
+                        
+                        previewContainer.appendChild(imagePreview);
+                        imageInput.parentNode.appendChild(previewContainer);
+                    }
+                    
+                    imagePreview.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    // Automatically set department when user is selected
+    const userSelect = document.getElementById('user_id');
+    const departmentSelect = document.getElementById('department_id');
+    
+    if (userSelect && departmentSelect) {
+        userSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const departmentId = selectedOption.getAttribute('data-department');
+                if (departmentId) {
+                    departmentSelect.value = departmentId;
+                }
+            }
+        });
+    }
 </script>
-@endpush
 
 @endsection
