@@ -29,6 +29,7 @@ class AssetTypeController extends Controller
             'name' => $validatedData['name'],
             'desc' => $validatedData['desc'],
             'status' => 'Active',
+            'requires_qr_code' => $request->has('requires_qr_code') ? 1 : 0,
         ]);
 
         return redirect('asset-types')->with('success', 'Asset Type Added Successfully');
@@ -49,7 +50,12 @@ class AssetTypeController extends Controller
         ]);
 
         $assetType = AssetType::findOrFail($id);
-        $assetType->update($validatedData);
+        $assetType->update([
+            'name' => $validatedData['name'],
+            'desc' => $validatedData['desc'],
+            'status' => $validatedData['status'],
+            'requires_qr_code' => $request->has('requires_qr_code') ? 1 : 0,
+        ]);
 
         return redirect('asset-types')->with('success', 'Asset Type Updated Successfully');
     }

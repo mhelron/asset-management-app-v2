@@ -129,7 +129,7 @@ class UserController extends Controller
 
     public function view($id)
     {
-        $user = User::with(['assets', 'components', 'department'])->findOrFail($id);
+        $user = User::with(['assets', 'department'])->findOrFail($id);
         return view('users.view', ['user' => $user, 'key' => $id]);
     }
 
@@ -146,8 +146,20 @@ class UserController extends Controller
             'first_name' => 'required|regex:/^[a-zA-Z\s\-]+$/',
             'last_name' => 'required|regex:/^[a-zA-Z\s]+$/',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
+            'password' => [
+                'required',
+                'min:8',
+                /*
+                (?=.*[A-Z]) para sa uppercase
+                (?=.*[0-9]) para sa number
+                (?=.*[!@#$%^&*]) para sa special char
+                */
+                'regex:/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]+$/',
+                'confirmed',
+            ],
             'department_id' => 'required|exists:departments,id',
+        ], [ // Custom Error Message
+                'password.regex' => 'The password must contain at least one uppercase letter, one number, and one special character.',
         ]);
     
         User::create([
@@ -230,7 +242,7 @@ class UserController extends Controller
         }
         
         // Get the user with related data
-        $user = User::with(['assets', 'components', 'department'])->findOrFail($userId);
+        $user = User::with(['assets', 'department'])->findOrFail($userId);
         
         return view('users.my-profile', ['user' => $user]);
     }

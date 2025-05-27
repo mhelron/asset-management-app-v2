@@ -14,6 +14,7 @@ use App\Models\CustomField;
 use App\Models\AssetType;
 use App\Models\Location;
 use App\Models\AssetNote;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class InventoryController extends Controller
 {
@@ -532,6 +533,28 @@ class InventoryController extends Controller
         try {
             $inventoryItem = Inventory::findOrFail($id);
             
+            // Debug logging for request data
+            Log::info('Inventory update request data:', [
+                'id' => $id,
+                'asset_type_id' => $request->asset_type_id,
+                'item_name' => $request->item_name,
+                'category_id' => $request->category_id,
+                'all_data' => $request->all(),
+                'request_method' => $request->method(),
+                'request_path' => $request->path(),
+                'has_asset_type_id' => $request->has('asset_type_id'),
+                'asset_type_id_in_array' => array_key_exists('asset_type_id', $request->all())
+            ]);
+            
+            // Debug logging for current inventory data
+            Log::info('Current inventory data:', [
+                'id' => $inventoryItem->id,
+                'asset_type_id' => $inventoryItem->asset_type_id,
+                'item_name' => $inventoryItem->item_name,
+                'category_id' => $inventoryItem->category_id,
+                'fillable' => $inventoryItem->getFillable()
+            ]);
+            
             // Prepare validation rules for standard fields
             $standardRules = [
                 'item_name' => 'required|string',
@@ -660,8 +683,15 @@ class InventoryController extends Controller
             // Prepare custom fields
             $customFields = $request->has('custom_fields') ? $request->input('custom_fields') : [];
             
-            // Update inventory item
-            $inventoryItem->update([
+            // Debug log before update
+            Log::info('Inventory update data:', [
+                'item_name' => $request->item_name,
+                'asset_type_id' => $request->asset_type_id,
+                'category_id' => $request->category_id
+            ]);
+            
+            // Create update data array explicitly
+            $updateData = [
                 'item_name' => $request->item_name,
                 'category_id' => $request->category_id,
                 'asset_type_id' => $request->asset_type_id,
@@ -675,6 +705,32 @@ class InventoryController extends Controller
                 'purchased_from' => $request->purchased_from,
                 'log_note' => $request->log_note,
                 'custom_fields' => $customFields
+            ];
+            
+            Log::info('Update data array:', $updateData);
+            
+            // Update inventory item
+            $inventoryItem->update($updateData);
+            
+            // Verify asset_type_id is updated directly
+            if ($request->asset_type_id != $inventoryItem->asset_type_id) {
+                Log::warning('Asset type ID mismatch after update - forcing direct update', [
+                    'requested' => $request->asset_type_id,
+                    'actual' => $inventoryItem->asset_type_id
+                ]);
+                
+                // Direct update as fallback
+                $inventoryItem->asset_type_id = $request->asset_type_id;
+                $inventoryItem->save();
+            }
+            
+            // Debug log after update
+            Log::info('Inventory after update:', [
+                'id' => $inventoryItem->id,
+                'asset_type_id' => $inventoryItem->asset_type_id,
+                'item_name' => $inventoryItem->item_name,
+                'category_id' => $inventoryItem->category_id,
+                'reload_check' => Inventory::find($id)->asset_type_id
             ]);
     
             return redirect()->route('inventory.index')
@@ -682,6 +738,7 @@ class InventoryController extends Controller
                 
         } catch (\Exception $e) {
             Log::error('Error updating inventory: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return redirect()->back()
                 ->with('error', 'Failed to update asset. Error: ' . $e->getMessage())
                 ->withInput();
@@ -707,7 +764,7 @@ class InventoryController extends Controller
     public function show($id)
     {
         try {
-            $inventoryItem = Inventory::with(['category', 'department', 'user', 'notes.user'])->findOrFail($id);
+            $inventoryItem = Inventory::with(['category', 'department', 'user', 'notes.user', 'assetType'])->findOrFail($id);
             
             // Get custom fields for the Asset type
             $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -728,7 +785,14 @@ class InventoryController extends Controller
             // Get asset notes
             $assetNotes = $inventoryItem->notes()->orderBy('created_at', 'desc')->get();
             
-            return view('inventory.show', compact('inventoryItem', 'allCustomFields', 'assetNotes'));
+            // Generate QR code if asset type requires it
+            $qrCode = null;
+            if ($inventoryItem->assetType && $inventoryItem->assetType->requires_qr_code) {
+                $qrContent = route('inventory.show', $id);
+                $qrCode = QrCode::size(200)->generate($qrContent);
+            }
+            
+            return view('inventory.show', compact('inventoryItem', 'allCustomFields', 'assetNotes', 'qrCode'));
             
         } catch (\Exception $e) {
             Log::error('Error showing inventory details: ' . $e->getMessage());
@@ -847,6 +911,51 @@ class InventoryController extends Controller
             Log::error('Error deleting note: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to delete note. Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate QR Code for an inventory item
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function generateQRCode($id)
+    {
+        try {
+            $inventoryItem = Inventory::findOrFail($id);
+            
+            // Get the asset type to check if QR code is applicable
+            $assetType = AssetType::find($inventoryItem->asset_type_id);
+            
+            if (!$assetType) {
+                return redirect()->back()->with('error', 'Asset type not found.');
+            }
+            
+            // Check if the asset type is marked as "requires_qr_code"
+            if (!$assetType->requires_qr_code) {
+                return redirect()->back()->with('error', 'QR Code generation is not applicable for this asset type.');
+            }
+            
+            // Generate QR code for the asset
+            $qrContent = route('inventory.show', $id); // Link to the asset's show page
+            $qrCode = QrCode::size(200)->generate($qrContent);
+            
+            // You can also include additional information in the QR code if needed
+            // $qrContent = json_encode([
+            //     'id' => $inventoryItem->id,
+            //     'name' => $inventoryItem->item_name,
+            //     'asset_tag' => $inventoryItem->asset_tag,
+            //     'serial_no' => $inventoryItem->serial_no,
+            //     'url' => route('inventory.show', $id)
+            // ]);
+            
+            return view('inventory.qrcode', compact('inventoryItem', 'qrCode'));
+                
+        } catch (\Exception $e) {
+            Log::error('Error generating QR code: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to generate QR code. Error: ' . $e->getMessage());
         }
     }
 }

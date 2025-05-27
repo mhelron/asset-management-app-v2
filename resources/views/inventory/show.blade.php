@@ -203,6 +203,11 @@
                     <a href="{{ route('inventory.edit', $inventoryItem->id) }}" class="btn btn-success me-2">
                         <i class="bi bi-pencil-square me-2"></i>Edit Asset
                     </a>
+                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code)
+                    <a href="{{ route('inventory.generate-qr', $inventoryItem->id) }}" class="btn btn-primary me-2">
+                        <i class="bi bi-qr-code me-2"></i>Generate QR Code
+                    </a>
+                    @endif
                     <a href="{{ route('inventory.index') }}" class="btn btn-danger">
                         <i class="bi bi-arrow-return-left me-2"></i>Back
                     </a>
@@ -223,6 +228,13 @@
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link px-4 py-3" id="asset_custom_fields" data-bs-toggle="tab" data-bs-target="#custom_fields" type="button" role="tab" aria-controls="custom_fields" aria-selected="false">
                                             <i class="bi bi-list-check me-2"></i>Custom Fields
+                                        </button>
+                                    </li>
+                                    @endif
+                                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code && $qrCode)
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-4 py-3" id="asset_qrcode" data-bs-toggle="tab" data-bs-target="#qrcode" type="button" role="tab" aria-controls="qrcode" aria-selected="false">
+                                            <i class="bi bi-qr-code me-2"></i>QR Code
                                         </button>
                                     </li>
                                     @endif
@@ -330,6 +342,29 @@
                                                 </div>
                                                 @endif
                                             @endforeach
+                                        </div>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- QR Code Tab -->
+                                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code && $qrCode)
+                                    <div class="tab-pane fade" id="qrcode" role="tabpanel" aria-labelledby="asset_qrcode">
+                                        <div class="row">
+                                            <div class="col-md-12 text-center">
+                                                <div class="mb-4">
+                                                    <h4 class="mb-3">QR Code for {{ $inventoryItem->item_name }}</h4>
+                                                    <div class="mb-3">
+                                                        {!! $qrCode !!}
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <p class="font-weight-bold">{{ $inventoryItem->asset_tag }}</p>
+                                                        <p>{{ $inventoryItem->serial_no }}</p>
+                                                    </div>
+                                                </div>
+                                                <button onclick="printQRCode()" class="btn btn-primary">
+                                                    <i class="bi bi-printer me-2"></i>Print QR Code
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     @endif
@@ -535,6 +570,78 @@
             });
         });
     });
+
+    // Function to print just the QR code
+    function printQRCode() {
+        const printContent = document.getElementById('qrcode').innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                ${printContent}
+            </div>
+            <style>
+                button { display: none; }
+            </style>
+        `;
+        
+        window.print();
+        document.body.innerHTML = originalContent;
+        
+        // Reattach event listeners after restoring content
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit Note Modal Handler
+            const editButtons = document.querySelectorAll('.edit-note-btn');
+            const editForm = document.getElementById('editNoteForm');
+            const editNoteContent = document.getElementById('edit_note_content');
+            
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const noteId = this.getAttribute('data-id');
+                    const noteContent = this.getAttribute('data-content');
+                    
+                    // Set form action URL with the proper note ID
+                    editForm.action = "{{ url('inventory/update-note') }}/" + {{ $inventoryItem->id }} + "/" + noteId;
+                    
+                    // Set form content
+                    editNoteContent.value = noteContent;
+                });
+            });
+            
+            // Delete Note Modal Handler
+            const deleteButtons = document.querySelectorAll('.delete-note-btn');
+            const deleteForm = document.getElementById('deleteNoteForm');
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const noteId = this.getAttribute('data-id');
+                    
+                    // Set form action URL with the proper note ID
+                    deleteForm.action = "{{ url('inventory/delete-note') }}/" + {{ $inventoryItem->id }} + "/" + noteId;
+                });
+            });
+            
+            // Fix line break issues in textareas
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && e.shiftKey) {
+                        // Let the browser handle Shift+Enter naturally
+                        return true;
+                    }
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        // Prevent default behavior for normal Enter (form submission)
+                        e.preventDefault();
+                        // Add the note when user presses Enter without Shift
+                        const form = this.closest('form');
+                        if (form && this.value.trim().length > 0) {
+                            form.submit();
+                        }
+                    }
+                });
+            });
+        });
+    }
 </script>
 
 @endsection 

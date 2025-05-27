@@ -71,7 +71,7 @@
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Total Components</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\Components::count() }}</h2>
+                            <h2 class="mb-0 fw-bold">0</h2>
                             <a href="#" class="text-success small">View all components →</a>
                         </div>
                     </div>

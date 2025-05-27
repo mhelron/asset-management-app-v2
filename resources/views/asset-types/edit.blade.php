@@ -73,6 +73,21 @@
                                 </div>
                             </div>
 
+                            <!-- Requires QR Code -->
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="requires_qr_code" id="requires_qr_code" value="1" {{ old('requires_qr_code', $assetType->requires_qr_code) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="requires_qr_code">
+                                            Requires QR Code
+                                        </label>
+                                        <small class="form-text text-muted d-block">
+                                            Check this option if assets of this type should have QR codes (e.g., fixed assets). Leave unchecked for consumables or other items that don't need tracking via QR codes.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Submit button -->
                             <div class="form-group mb-3">
                                 <button type="submit" class="btn btn-dark float-end"><i class="bi bi-pencil-square me-2"></i>Update Asset Type</button>

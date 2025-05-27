@@ -136,7 +136,7 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <div class="p-3 rounded-3 bg-light text-center border">
-                                    <h2 class="mb-1">{{ $user->components->count() }}</h2>
+                                    <h2 class="mb-1">0</h2>
                                     <p class="text-muted mb-0">Assigned Components</p>
                                 </div>
                             </div>
@@ -212,22 +212,9 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($user->components as $component)
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route('components.show', $component->id) }}" class="text-decoration-none">{{ $component->name }}</a>
-                                                </td>
-                                                <td>{{ $component->category->name ?? 'N/A' }}</td>
-                                                <td>{{ $component->serial_number }}</td>
-                                                <td>
-                                                    <span class="badge bg-success">Assigned</span>
-                                                </td>
-                                            </tr>
-                                            @empty
                                             <tr>
                                                 <td colspan="4" class="text-center py-3">No components assigned yet</td>
                                             </tr>
-                                            @endforelse
                                         </tbody>
                                     </table>
                                 </div>

@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('add-note/{id}', [InventoryController::class, 'addNote'])->name('inventory.add-note');
         Route::put('update-note/{inventory}/{note}', [InventoryController::class, 'updateNote'])->name('inventory.update-note');
         Route::delete('delete-note/{inventory}/{note}', [InventoryController::class, 'deleteNote'])->name('inventory.delete-note');
+        Route::get('generate-qr/{id}', [InventoryController::class, 'generateQRCode'])->name('inventory.generate-qr');
     });
 
     // Custom Fields Route

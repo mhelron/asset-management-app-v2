@@ -108,6 +108,24 @@
                             </div>
 
                             <div class="row">
+                                <!-- Asset Type -->
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="asset_type_id">Asset Type<span class="text-danger"> *</span></label>
+                                        <select name="asset_type_id" id="asset_type_id" class="form-control">
+                                            <option value="" disabled>Select an asset type</option>
+                                            @foreach ($assetTypes as $assetType)
+                                                <option value="{{ $assetType->id }}" {{ old('asset_type_id', $inventoryItem->asset_type_id) == $assetType->id ? 'selected' : '' }}>
+                                                    {{ $assetType->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('asset_type_id', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Asset Tag<span class="text-danger"> *</span></label>
@@ -117,7 +135,9 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
                 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Serial Number<span class="text-danger"> *</span></label>
@@ -127,9 +147,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Model Number<span class="text-danger"> *</span></label>
@@ -139,7 +157,9 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
                 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Date Purchased<span class="text-danger"> *</span></label>
@@ -149,9 +169,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Manufacturer<span class="text-danger"> *</span></label>
@@ -161,7 +179,9 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
                 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Purchased From<span class="text-danger"> *</span></label>
@@ -171,9 +191,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Asset Image</label>
@@ -558,6 +576,48 @@
             }
         });
     }
+
+    // Add debug for form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the form element
+        const form = document.querySelector('form[action*="inventory.update"]');
+        
+        if (form) {
+            // Log asset type data when the form loads
+            const assetTypeSelect = document.getElementById('asset_type_id');
+            if (assetTypeSelect) {
+                console.log('Current asset type selection:', {
+                    value: assetTypeSelect.value,
+                    options: Array.from(assetTypeSelect.options).map(opt => ({ 
+                        value: opt.value, 
+                        text: opt.text,
+                        selected: opt.selected 
+                    }))
+                });
+            }
+            
+            // Add submit event listener to the form
+            form.addEventListener('submit', function(event) {
+                // Log form data before submission
+                console.log('Form submission started');
+                
+                const assetTypeId = document.getElementById('asset_type_id').value;
+                console.log('Asset Type ID:', assetTypeId);
+                
+                const formData = new FormData(form);
+                const formDataObj = {};
+                
+                formData.forEach((value, key) => {
+                    formDataObj[key] = value;
+                });
+                
+                console.log('Form data:', formDataObj);
+                
+                // Continue with form submission
+                return true;
+            });
+        }
+    });
 </script>
 
 @endsection
