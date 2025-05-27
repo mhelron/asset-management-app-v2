@@ -29,5 +29,7 @@ class AppServiceProvider extends ServiceProvider
         Route::middleware('role', RoleMiddleware::class);
         Route::middleware('permission', PermissionMiddleware::class);
         Route::middleware('role_or_permission', RoleOrPermissionMiddleware::class);
+
+        Route::middleware('role.permission', \App\Http\Middleware\RolePermissionMiddleware::class);
     }
 }
