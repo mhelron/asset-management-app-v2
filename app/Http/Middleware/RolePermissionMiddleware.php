@@ -38,7 +38,7 @@ class RolePermissionMiddleware
 
     public function handle(Request $request, Closure $next): Response
     {
-        $role = strtolower(Auth::user()->role); // Adjust this to your actual role field
+        $role = strtolower(Auth::user()->user_role); // Adjust this to your actual role field
 
         // Allow all routes for admin
         if ($this->permissions[$role] === 'all') {
@@ -48,7 +48,8 @@ class RolePermissionMiddleware
         $currentRoute = $request->route()->getName();
 
         if (!in_array($currentRoute, $this->permissions[$role])) {
-            abort(403, 'Unauthorized access.');
+            // Instead of abort, return the custom error view with 403 status code
+            return response()->view('error-page.error', [], 403);
         }
 
         return $next($request);

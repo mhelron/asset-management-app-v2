@@ -26,7 +26,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth' , 'role.permission'])->group(function () {
     
     // Dasbord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');   
