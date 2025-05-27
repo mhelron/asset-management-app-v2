@@ -75,7 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('add-note/{id}', [InventoryController::class, 'addNote'])->name('inventory.add-note');
         Route::put('update-note/{inventory}/{note}', [InventoryController::class, 'updateNote'])->name('inventory.update-note');
         Route::delete('delete-note/{inventory}/{note}', [InventoryController::class, 'deleteNote'])->name('inventory.delete-note');
-        Route::get('generate-qr/{id}', [InventoryController::class, 'generateQRCode'])->name('inventory.generate-qr');
+        Route::get('test-qr/{id}', [InventoryController::class, 'testQRCode'])->name('inventory.test-qr');
     });
 
     // Custom Fields Route
@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('edit-department/{id}', [DepartmentController::class, 'edit'])->name('departments.edit');
         Route::put('update-department/{id}', [DepartmentController::class, 'update'])->name('departments.update');
         Route::delete('/archive-department/{id}', [DepartmentController::class, 'archive'])->name('departments.archive');
+        Route::get('get-location/{id}', [DepartmentController::class, 'getLocation'])->name('departments.get-location');
     });
 
     // Asset Type Routes

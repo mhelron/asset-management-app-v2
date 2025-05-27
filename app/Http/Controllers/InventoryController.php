@@ -764,7 +764,7 @@ class InventoryController extends Controller
     public function show($id)
     {
         try {
-            $inventoryItem = Inventory::with(['category', 'department', 'user', 'notes.user', 'assetType'])->findOrFail($id);
+            $inventoryItem = Inventory::with(['category', 'department', 'user', 'notes.user', 'assetType', 'location'])->findOrFail($id);
             
             // Get custom fields for the Asset type
             $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -915,47 +915,22 @@ class InventoryController extends Controller
     }
 
     /**
-     * Generate QR Code for an inventory item
-     *
-     * @param  int  $id
+     * Test a QR code redirection
+     * 
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function generateQRCode($id)
+    public function testQRCode($id)
     {
         try {
             $inventoryItem = Inventory::findOrFail($id);
             
-            // Get the asset type to check if QR code is applicable
-            $assetType = AssetType::find($inventoryItem->asset_type_id);
-            
-            if (!$assetType) {
-                return redirect()->back()->with('error', 'Asset type not found.');
-            }
-            
-            // Check if the asset type is marked as "requires_qr_code"
-            if (!$assetType->requires_qr_code) {
-                return redirect()->back()->with('error', 'QR Code generation is not applicable for this asset type.');
-            }
-            
-            // Generate QR code for the asset
-            $qrContent = route('inventory.show', $id); // Link to the asset's show page
-            $qrCode = QrCode::size(200)->generate($qrContent);
-            
-            // You can also include additional information in the QR code if needed
-            // $qrContent = json_encode([
-            //     'id' => $inventoryItem->id,
-            //     'name' => $inventoryItem->item_name,
-            //     'asset_tag' => $inventoryItem->asset_tag,
-            //     'serial_no' => $inventoryItem->serial_no,
-            //     'url' => route('inventory.show', $id)
-            // ]);
-            
-            return view('inventory.qrcode', compact('inventoryItem', 'qrCode'));
+            return view('inventory.qr-test-success', compact('inventoryItem'));
                 
         } catch (\Exception $e) {
-            Log::error('Error generating QR code: ' . $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Failed to generate QR code. Error: ' . $e->getMessage());
+            Log::error('Error testing QR code: ' . $e->getMessage());
+            return redirect()->route('inventory.index')
+                ->with('error', 'Failed to load asset for QR test.');
         }
     }
 }

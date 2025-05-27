@@ -59,11 +59,29 @@
                                 </div>
                             </div>
 
-                             <!-- Location -->
-                             <div class="col-md-12">
+                            <!-- Location -->
+                            <div class="col-md-12">
                                 <div class="form-group mb-3">
                                     <label>Location <span class="text-danger"> *</span></label>
-                                    <input type="text" name="location" value="{{ old('location', $department->location) }}" class="form-control" placeholder="Enter department location">
+                                    <select name="location_id" class="form-select">
+                                        <option value="">Select a Location</option>
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location->id }}" {{ old('location_id', $department->location_id) == $location->id ? 'selected' : '' }}>
+                                                {{ $location->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('location_id')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <!-- Old Location Field (Optional) -->
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label>Additional Location Details (Optional)</label>
+                                    <input type="text" name="location" value="{{ old('location', $department->location) }}" class="form-control" placeholder="Enter additional location details">
                                     @error('location')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror

@@ -93,7 +93,13 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $department->name }}</td>
-                                        <td>{{ $department->location }}</td>
+                                        <td>
+                                            @if($department->location_id && $department->location)
+                                                {{ $department->location->name }}
+                                            @else
+                                                {{ $department->location }}
+                                            @endif
+                                        </td>
                                         <td>{{ Str::limit($department->desc, 30) }}</td>
                                         <td><span class="badge {{ $department->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $department->status }}</span></td>
                                         <td>

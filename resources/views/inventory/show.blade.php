@@ -203,11 +203,6 @@
                     <a href="{{ route('inventory.edit', $inventoryItem->id) }}" class="btn btn-success me-2">
                         <i class="bi bi-pencil-square me-2"></i>Edit Asset
                     </a>
-                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code)
-                    <a href="{{ route('inventory.generate-qr', $inventoryItem->id) }}" class="btn btn-primary me-2">
-                        <i class="bi bi-qr-code me-2"></i>Generate QR Code
-                    </a>
-                    @endif
                     <a href="{{ route('inventory.index') }}" class="btn btn-danger">
                         <i class="bi bi-arrow-return-left me-2"></i>Back
                     </a>
@@ -284,16 +279,24 @@
                                                         <td>{{ $inventoryItem->category->category ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
+                                                        <th>Asset Type</th>
+                                                        <td>{{ $inventoryItem->assetType->name ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    <tr>
                                                         <th>Department</th>
                                                         <td>{{ $inventoryItem->department->name ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>Owner</th>
                                                         <td>
-                                                            @if($inventoryItem->user)
+                                                            @if($inventoryItem->users_id && $inventoryItem->user)
                                                                 <a href="{{ route('users.view', $inventoryItem->user->id) }}">
                                                                     {{ $inventoryItem->user->first_name }} {{ $inventoryItem->user->last_name }}
                                                                 </a>
+                                                            @elseif($inventoryItem->department_id && $inventoryItem->department)
+                                                                <span class="badge bg-info">Department: {{ $inventoryItem->department->name }}</span>
+                                                            @elseif($inventoryItem->location_id && $inventoryItem->location)
+                                                                <span class="badge bg-secondary">Location: {{ $inventoryItem->location->name }}</span>
                                                             @else
                                                                 <span class="badge bg-secondary">Not assigned</span>
                                                             @endif
@@ -361,9 +364,22 @@
                                                         <p>{{ $inventoryItem->serial_no }}</p>
                                                     </div>
                                                 </div>
-                                                <button onclick="printQRCode()" class="btn btn-primary">
-                                                    <i class="bi bi-printer me-2"></i>Print QR Code
-                                                </button>
+                                                <div class="mt-4 pt-4 border-top">
+                                                    <h5>QR Code Testing Information</h5>
+                                                    <p>When scanned, this QR code will open the following URL:</p>
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" value="{{ route('inventory.show', $inventoryItem->id) }}" id="qrUrl" readonly>
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="copyUrl()">Copy</button>
+                                                    </div>
+                                                    <div class="d-flex justify-content-center gap-2 mt-3">
+                                                        <a href="{{ route('inventory.test-qr', $inventoryItem->id) }}" target="_blank" class="btn btn-success">
+                                                            <i class="fas fa-external-link-alt me-1"></i> Test Link
+                                                        </a>
+                                                        <button onclick="printQRCode()" class="btn btn-primary">
+                                                            <i class="fas fa-print me-1"></i> Print QR Code
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -641,6 +657,14 @@
                 });
             });
         });
+    }
+    
+    // Function to copy QR URL to clipboard
+    function copyUrl() {
+        const urlInput = document.getElementById('qrUrl');
+        urlInput.select();
+        document.execCommand('copy');
+        alert('URL copied to clipboard!');
     }
 </script>
 

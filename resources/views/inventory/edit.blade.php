@@ -257,6 +257,22 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <!-- Asset Location Field - Only shown when User is selected as owner -->
+                            <div class="form-group mb-3" id="asset_location_container" style="display: none;">
+                                <label>Asset Location<span class="text-danger"> *</span></label>
+                                <select name="asset_location_id" id="asset_location_id" class="form-select">
+                                    <option value="">Select Asset Location</option>
+                                    @foreach($locations ?? [] as $location)
+                                        <option value="{{ $location->id }}" {{ old('asset_location_id', $inventoryItem->location_id) == $location->id ? 'selected' : '' }}>
+                                            {{ $location->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('location_id', 'inventoryForm')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
                                                     
                             <!-- Asset-specific Custom Fields -->
                             <div id="asset-fields-container">
@@ -459,6 +475,14 @@
             document.getElementById('user-btn').classList.remove('active');
             document.getElementById('department-btn').classList.remove('active');
             document.getElementById('location-btn').classList.remove('active');
+            
+            // Clear values from hidden dropdowns
+            document.getElementById('user_id').value = '';
+            document.getElementById('department_id').value = '';
+            document.getElementById('location_id').value = '';
+            
+            // Hide asset location container by default
+            document.getElementById('asset_location_container').style.display = 'none';
         } catch (e) {
             console.error('Error in hideAllDropdowns:', e);
         }
@@ -467,9 +491,27 @@
     // Functions to show specific dropdowns
     function showUserDropdown() {
         try {
-            hideAllDropdowns();
+            // Clear all dropdown values first
+            document.getElementById('user_id').value = '';
+            document.getElementById('department_id').value = '';
+            document.getElementById('location_id').value = '';
+            
+            // Hide all dropdowns
+            document.getElementById('user_assignment').style.display = 'none';
+            document.getElementById('department_assignment').style.display = 'none';
+            document.getElementById('location_assignment').style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.getElementById('user-btn').classList.remove('active');
+            document.getElementById('department-btn').classList.remove('active');
+            document.getElementById('location-btn').classList.remove('active');
+            
+            // Show user dropdown and set active class
             document.getElementById('user_assignment').style.display = 'block';
             document.getElementById('user-btn').classList.add('active');
+            
+            // Show asset location field when user is selected as owner
+            document.getElementById('asset_location_container').style.display = 'block';
             console.log('User dropdown shown');
         } catch (e) {
             console.error('Error in showUserDropdown:', e);
@@ -478,9 +520,27 @@
     
     function showDepartmentDropdown() {
         try {
-            hideAllDropdowns();
+            // Clear all dropdown values first
+            document.getElementById('user_id').value = '';
+            document.getElementById('department_id').value = '';
+            document.getElementById('location_id').value = '';
+            
+            // Hide all dropdowns
+            document.getElementById('user_assignment').style.display = 'none';
+            document.getElementById('department_assignment').style.display = 'none';
+            document.getElementById('location_assignment').style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.getElementById('user-btn').classList.remove('active');
+            document.getElementById('department-btn').classList.remove('active');
+            document.getElementById('location-btn').classList.remove('active');
+            
+            // Show department dropdown and set active class
             document.getElementById('department_assignment').style.display = 'block';
             document.getElementById('department-btn').classList.add('active');
+            
+            // Hide asset location field when department is selected as owner
+            document.getElementById('asset_location_container').style.display = 'none';
             console.log('Department dropdown shown');
         } catch (e) {
             console.error('Error in showDepartmentDropdown:', e);
@@ -489,9 +549,27 @@
     
     function showLocationDropdown() {
         try {
-            hideAllDropdowns();
+            // Clear all dropdown values first
+            document.getElementById('user_id').value = '';
+            document.getElementById('department_id').value = '';
+            document.getElementById('location_id').value = '';
+            
+            // Hide all dropdowns
+            document.getElementById('user_assignment').style.display = 'none';
+            document.getElementById('department_assignment').style.display = 'none';
+            document.getElementById('location_assignment').style.display = 'none';
+            
+            // Remove active class from all buttons
+            document.getElementById('user-btn').classList.remove('active');
+            document.getElementById('department-btn').classList.remove('active');
+            document.getElementById('location-btn').classList.remove('active');
+            
+            // Show location dropdown and set active class
             document.getElementById('location_assignment').style.display = 'block';
             document.getElementById('location-btn').classList.add('active');
+            
+            // Hide asset location field when location is selected as owner
+            document.getElementById('asset_location_container').style.display = 'none';
             console.log('Location dropdown shown');
         } catch (e) {
             console.error('Error in showLocationDropdown:', e);
@@ -503,27 +581,144 @@
         try {
             console.log('DOM loaded, setting initial owner selection state');
             
-            // Check if user is selected
-            const userSelected = {{ old('users_id', $inventoryItem->users_id) ? 'true' : 'false' }};
-            const departmentSelected = {{ old('department_id', $inventoryItem->department_id) && !old('users_id', $inventoryItem->users_id) ? 'true' : 'false' }};
-            const locationSelected = {{ old('location_id', $inventoryItem->location_id) && !old('users_id', $inventoryItem->users_id) && !old('department_id', $inventoryItem->department_id) ? 'true' : 'false' }};
+            // Get the current owner values
+            const usersId = {{ old('users_id', $inventoryItem->users_id ?? 'null') }};
+            const departmentId = {{ old('department_id', $inventoryItem->department_id ?? 'null') }};
+            const locationId = {{ old('location_id', $inventoryItem->location_id ?? 'null') }};
             
-            console.log('Initial state values:', { userSelected, departmentSelected, locationSelected });
+            console.log('Owner values:', { usersId, departmentId, locationId });
             
             // Set button click handlers
-            document.getElementById('user-btn').addEventListener('click', showUserDropdown);
-            document.getElementById('department-btn').addEventListener('click', showDepartmentDropdown);
-            document.getElementById('location-btn').addEventListener('click', showLocationDropdown);
-            
-            if (userSelected) {
+            document.getElementById('user-btn').addEventListener('click', function() {
+                // Don't clear the values when initializing
                 showUserDropdown();
-            } else if (departmentSelected) {
+                // Restore the selected user if there was one
+                if (usersId && usersId !== 'null') {
+                    document.getElementById('user_id').value = usersId;
+                }
+            });
+            
+            document.getElementById('department-btn').addEventListener('click', function() {
+                // Don't clear the values when initializing
                 showDepartmentDropdown();
-            } else if (locationSelected) {
+                // Restore the selected department if there was one
+                if (departmentId && departmentId !== 'null') {
+                    document.getElementById('department_id').value = departmentId;
+                }
+            });
+            
+            document.getElementById('location-btn').addEventListener('click', function() {
+                // Don't clear the values when initializing
                 showLocationDropdown();
+                // Restore the selected location if there was one
+                if (locationId && locationId !== 'null') {
+                    document.getElementById('location_id').value = locationId;
+                }
+            });
+            
+            // Initialize the form based on the current owner
+            if (usersId && usersId !== 'null') {
+                // Don't use the click handler as it would clear the values
+                document.getElementById('user_assignment').style.display = 'block';
+                document.getElementById('user-btn').classList.add('active');
+                document.getElementById('asset_location_container').style.display = 'block';
+                
+                // Set the asset location value to match the location_id
+                if (locationId && locationId !== 'null') {
+                    document.getElementById('asset_location_id').value = locationId;
+                }
+            } else if (departmentId && departmentId !== 'null') {
+                document.getElementById('department_assignment').style.display = 'block';
+                document.getElementById('department-btn').classList.add('active');
+            } else if (locationId && locationId !== 'null') {
+                document.getElementById('location_assignment').style.display = 'block';
+                document.getElementById('location-btn').classList.add('active');
             } else {
                 // Default to user if nothing is selected
-                showUserDropdown();
+                document.getElementById('user_assignment').style.display = 'block';
+                document.getElementById('user-btn').classList.add('active');
+                document.getElementById('asset_location_container').style.display = 'block';
+            }
+            
+            // Get select elements
+            const userSelect = document.getElementById('user_id');
+            const departmentSelect = document.getElementById('department_id');
+            const assetLocationSelect = document.getElementById('asset_location_id');
+            const locationSelect = document.getElementById('location_id');
+            
+            // Set location_id when asset location is selected for user owner
+            if (assetLocationSelect) {
+                assetLocationSelect.addEventListener('change', function() {
+                    // Copy the selected location to the hidden location_id field
+                    locationSelect.value = this.value;
+                });
+            }
+            
+            // Handle form submission
+            const form = document.querySelector('form[action*="inventory.update"]');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    const activeOwnerType = document.querySelector('.btn-outline-secondary.active');
+                    
+                    // If user is selected as owner, require asset location
+                    if (activeOwnerType && activeOwnerType.id === 'user-btn') {
+                        if (!assetLocationSelect.value) {
+                            event.preventDefault();
+                            alert('Please select an asset location when assigning to a user.');
+                            assetLocationSelect.focus();
+                            return false;
+                        }
+                        
+                        // Set the location_id to the selected asset location
+                        locationSelect.value = assetLocationSelect.value;
+                    }
+                    
+                    // If location is selected as owner, copy the location_id
+                    if (activeOwnerType && activeOwnerType.id === 'location-btn') {
+                        // location_id is already set by the location dropdown
+                    }
+                    
+                    // If department is selected, we would ideally set the location based on department
+                    // For now, we'll leave it as is
+                    
+                    return true;
+                });
+            }
+            
+            // Automatically set department when user is selected
+            if (userSelect && departmentSelect) {
+                userSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.value) {
+                        const departmentId = selectedOption.getAttribute('data-department');
+                        if (departmentId) {
+                            departmentSelect.value = departmentId;
+                        }
+                    }
+                });
+            }
+
+            // Set location_id when department is selected
+            if (departmentSelect) {
+                departmentSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        // Fetch the department's location_id
+                        fetch(`/departments/get-location/${this.value}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.location_id) {
+                                    // Set the location_id field
+                                    locationSelect.value = data.location_id;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching department location:', error);
+                            });
+                    } else {
+                        // Clear the location_id field if no department is selected
+                        locationSelect.value = '';
+                    }
+                });
             }
         } catch (e) {
             console.error('Error in DOMContentLoaded:', e);

@@ -122,10 +122,26 @@
                                                 <span class="text-muted">No image</span>
                                             @endif
                                         </td>
-                                        <td>{{ $item->category->type ?? 'N/A' }}</td>
+                                        <td>{{ $item->assetType->name ?? 'N/A' }}</td>
                                         <td>{{ $item->category->category ?? 'N/A' }}</td>
-                                        <td>{{ $item->user->first_name ?? '' }} {{ $item->user->last_name ?? 'Unassigned' }}</td>
-                                        <td>{{ $item->department->name ?? 'Unassigned' }}</td>
+                                        <td>
+                                            @if($item->users_id && $item->user)
+                                            <span class="badge bg-secondary">{{ $item->user->first_name }} {{ $item->user->last_name }}</span>
+                                            @elseif($item->department_id && $item->department)
+                                                <span class="badge bg-secondary">{{ $item->department->name }}</span>
+                                            @elseif($item->location_id && $item->location)
+                                                <span class="badge bg-secondary">{{ $item->location->name }}</span>
+                                            @else
+                                                <span class="text-muted">Unassigned</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($item->location_id && $item->location)
+                                                {{ $item->location->name }}
+                                            @else
+                                                <span class="text-muted">Unassigned</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $item->model_no }}</td>
                                         <td>{{ $item->serial_no }}</td>
                                         <td><span class="badge bg-secondary">{{ $item->asset_tag }}</span></td>
@@ -178,10 +194,16 @@
                                         <h5 class="card-title">
                                             <a href="{{ route('inventory.show', $item->id) }}" class="text-decoration-none">{{ $item->item_name }}</a>
                                         </h5>
-                                        <p class="card-text text-muted small mb-2">{{ $item->category->category ?? 'N/A' }}</p>
+                                        <p class="card-text text-muted small mb-2">{{ $item->assetType->name ?? 'N/A' }} / {{ $item->category->category ?? 'N/A' }}</p>
                                         <p class="card-text small mb-1"><strong>Tag:</strong> {{ $item->asset_tag }}</p>
                                         <p class="card-text small mb-1"><strong>SN:</strong> {{ $item->serial_no }}</p>
-                                        <p class="card-text small"><strong>Location:</strong> {{ $item->department->name ?? 'Unassigned' }}</p>
+                                        <p class="card-text small"><strong>Location:</strong> 
+                                            @if($item->location_id && $item->location)
+                                                {{ $item->location->name }}
+                                            @else
+                                                <span class="text-muted">Unassigned</span>
+                                            @endif
+                                        </p>
                                     </div>
                                     <div class="card-footer bg-transparent border-top-0 d-flex justify-content-center">
                                         <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-2">

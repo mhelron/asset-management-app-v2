@@ -14,11 +14,17 @@ class Department extends Model
         'name',
         'desc',
         'location',
+        'location_id',
         'status',
     ];
 
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+    
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }

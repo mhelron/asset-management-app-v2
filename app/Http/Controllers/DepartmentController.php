@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\Location;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
@@ -15,7 +16,8 @@ class DepartmentController extends Controller
 
     public function create()
     {
-        return view('departments.create');
+        $locations = Location::where('status', 'Active')->get();
+        return view('departments.create', compact('locations'));
     }
 
     public function store(Request $request)
@@ -23,13 +25,15 @@ class DepartmentController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'desc' => 'required|string',
-            'location' => 'required|string',
+            'location' => 'nullable|string',
+            'location_id' => 'required|exists:locations,id',
         ]);
 
         Department::create([
             'name' => $validatedData['name'],
             'desc' => $validatedData['desc'],
-            'location' => $validatedData['location'],
+            'location' => $validatedData['location'] ?? '',
+            'location_id' => $validatedData['location_id'],
             'status' => 'Active',
         ]);
 
@@ -39,7 +43,8 @@ class DepartmentController extends Controller
     public function edit($id)
     {
         $department = Department::findOrFail($id);
-        return view('departments.edit', compact('department'));
+        $locations = Location::where('status', 'Active')->get();
+        return view('departments.edit', compact('department', 'locations'));
     }
 
     public function update(Request $request, $id)
@@ -47,7 +52,8 @@ class DepartmentController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'desc' => 'required|string',
-            'location' => 'required|string',
+            'location' => 'nullable|string',
+            'location_id' => 'required|exists:locations,id',
             'status' => 'required|string',
         ]);
 
@@ -63,5 +69,14 @@ class DepartmentController extends Controller
         $department->delete(); // Soft delete (archives the department)
 
         return redirect('departments')->with('success', 'Department Archived Successfully');
+    }
+
+    public function getLocation($id)
+    {
+        $department = Department::findOrFail($id);
+        return response()->json([
+            'location_id' => $department->location_id,
+            'location_name' => $department->location ? $department->location->name : null
+        ]);
     }
 }
