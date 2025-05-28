@@ -15,6 +15,8 @@ use App\Models\AssetType;
 use App\Models\Location;
 use App\Models\AssetNote;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\AssetTransfer;
+use App\Models\AssetRequest;
 
 class InventoryController extends Controller
 {
@@ -89,6 +91,7 @@ class InventoryController extends Controller
         $departments = Department::all();
         $users = User::all();
         $assetTypes = AssetType::where('status', 'Active')->get();
+        $locations = Location::where('status', 'Active')->get();
         
         // Fetch custom fields that apply to Assets
         $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -105,7 +108,8 @@ class InventoryController extends Controller
             'department_filter',
             'date_filter',
             'type_filter',
-            'owner_filter'
+            'owner_filter',
+            'locations'
         ));
     }
 
@@ -273,28 +277,27 @@ class InventoryController extends Controller
     }
 
     /**
-     * Generate a shorter asset tag by removing vowels and using a better format
+     * Generate a asset tag using category initials, date and item name with vowels removed
      */
     public function generateAssetTag() {
-        // Get current date in format YYMMDD
-        $date = date('ymd');
+        // Default pattern if we can't use category and name
+        $categoryCode = "IT";
+        $dateCode = date('my'); // Month and year
+        $nameCode = "ASSET";
         
-        // Generate a random 4-character alphanumeric string without vowels
-        $chars = '0123456789BCDFGHJKLMNPQRSTVWXYZ';
-        $randomPart = '';
-        for ($i = 0; $i < 4; $i++) {
-            $randomPart .= $chars[rand(0, strlen($chars) - 1)];
+        // Combine to create the asset tag: CATEGORY-DATE-NAME
+        $assetTag = $categoryCode . '-' . $dateCode . '-' . $nameCode;
+        
+        // Check if this asset tag already exists, if so, add a counter
+        $count = 1;
+        $newTag = $assetTag;
+        
+        while (Inventory::where('asset_tag', $newTag)->exists()) {
+            $newTag = $assetTag . '-' . $count;
+            $count++;
         }
         
-        // Combine to create the asset tag: DATE-RANDOM
-        $assetTag = $date . '-' . $randomPart;
-        
-        // Check if this asset tag already exists, if so, regenerate
-        if (Inventory::where('asset_tag', $assetTag)->exists()) {
-            return $this->generateAssetTag();
-        }
-        
-        return $assetTag;
+        return $newTag;
     }
         
     public function create() {
@@ -687,7 +690,8 @@ class InventoryController extends Controller
             Log::info('Inventory update data:', [
                 'item_name' => $request->item_name,
                 'asset_type_id' => $request->asset_type_id,
-                'category_id' => $request->category_id
+                'category_id' => $request->category_id,
+                'asset_tag' => $request->asset_tag
             ]);
             
             // Create update data array explicitly
@@ -703,6 +707,7 @@ class InventoryController extends Controller
                 'manufacturer' => $request->manufacturer,
                 'date_purchased' => $request->date_purchased,
                 'purchased_from' => $request->purchased_from,
+                'asset_tag' => $request->asset_tag,
                 'log_note' => $request->log_note,
                 'custom_fields' => $customFields
             ];
@@ -730,6 +735,7 @@ class InventoryController extends Controller
                 'asset_type_id' => $inventoryItem->asset_type_id,
                 'item_name' => $inventoryItem->item_name,
                 'category_id' => $inventoryItem->category_id,
+                'asset_tag' => $inventoryItem->asset_tag,
                 'reload_check' => Inventory::find($id)->asset_type_id
             ]);
     
@@ -784,6 +790,30 @@ class InventoryController extends Controller
             
             // Get asset notes
             $assetNotes = $inventoryItem->notes()->orderBy('created_at', 'desc')->get();
+            
+            // Get asset transfers with notes
+            $assetTransfers = AssetTransfer::where('inventory_id', $id)
+                ->whereNotNull('note')
+                ->where('note', '!=', '')
+                ->with('creator')
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+            // Convert transfer notes to a format similar to asset notes for display
+            foreach ($assetTransfers as $transfer) {
+                $transferNote = new \stdClass();
+                $transferNote->id = 'transfer_' . $transfer->id; // Use a prefix to distinguish from regular notes
+                $transferNote->content = "Transfer Note: " . $transfer->note;
+                $transferNote->user = $transfer->creator;
+                $transferNote->user_id = $transfer->created_by;
+                $transferNote->created_at = $transfer->created_at;
+                
+                // Add to asset notes collection
+                $assetNotes->push($transferNote);
+            }
+            
+            // Re-sort the combined collection by created_at
+            $assetNotes = $assetNotes->sortByDesc('created_at');
             
             // Generate QR code if asset type requires it
             $qrCode = null;
@@ -931,6 +961,134 @@ class InventoryController extends Controller
             Log::error('Error testing QR code: ' . $e->getMessage());
             return redirect()->route('inventory.index')
                 ->with('error', 'Failed to load asset for QR test.');
+        }
+    }
+    
+    /**
+     * Transfer an asset to a new owner
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function transferAsset(Request $request, $id)
+    {
+        try {
+            $inventoryItem = Inventory::findOrFail($id);
+            
+            // Validate the request
+            $request->validate([
+                'transfer_to_type' => 'required|in:user,department,location',
+                'users_id' => 'required_if:transfer_to_type,user|nullable|exists:users,id',
+                'department_id' => 'required_if:transfer_to_type,department|nullable|exists:departments,id',
+                'location_id' => 'required_if:transfer_to_type,location|nullable|exists:locations,id',
+                'transfer_note' => 'nullable|string',
+            ]);
+            
+            // Capture the original owner information
+            $fromUserId = $inventoryItem->users_id;
+            $fromDepartmentId = $inventoryItem->department_id;
+            $fromLocationId = $inventoryItem->location_id;
+            
+            // Update the inventory item with the new owner
+            $updateData = [
+                'users_id' => null,
+                'department_id' => null,
+                'location_id' => null,
+            ];
+            
+            switch ($request->transfer_to_type) {
+                case 'user':
+                    $updateData['users_id'] = $request->users_id;
+                    
+                    // Also set location if provided
+                    if ($request->has('asset_location_id') && $request->asset_location_id) {
+                        $updateData['location_id'] = $request->asset_location_id;
+                    }
+                    break;
+                    
+                case 'department':
+                    $updateData['department_id'] = $request->department_id;
+                    
+                    // Get the department's location
+                    $department = Department::find($request->department_id);
+                    if ($department && $department->location_id) {
+                        $updateData['location_id'] = $department->location_id;
+                    }
+                    break;
+                    
+                case 'location':
+                    $updateData['location_id'] = $request->location_id;
+                    break;
+            }
+            
+            // Update the inventory item
+            $inventoryItem->update($updateData);
+            
+            // Create a transfer record
+            AssetTransfer::create([
+                'inventory_id' => $inventoryItem->id,
+                'from_user_id' => $fromUserId,
+                'from_department_id' => $fromDepartmentId,
+                'from_location_id' => $fromLocationId,
+                'to_user_id' => $updateData['users_id'],
+                'to_department_id' => $updateData['department_id'],
+                'to_location_id' => $updateData['location_id'],
+                'note' => $request->transfer_note,
+                'created_by' => Auth::id(),
+                'status' => 'Completed',
+            ]);
+            
+            return redirect()->route('inventory.index')
+                ->with('success', 'Asset transferred successfully.');
+                
+        } catch (\Exception $e) {
+            Log::error('Error transferring asset: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to transfer asset. Error: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Request an asset
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function requestAsset(Request $request, $id)
+    {
+        try {
+            $inventoryItem = Inventory::findOrFail($id);
+            
+            // Check if the asset is requestable
+            if (!$inventoryItem->is_requestable) {
+                return redirect()->back()
+                    ->with('error', 'This asset is not requestable.');
+            }
+            
+            // Validate the request
+            $request->validate([
+                'request_reason' => 'required|string',
+                'request_date_needed' => 'required|date|after:today',
+            ]);
+            
+            // Create a request record
+            AssetRequest::create([
+                'inventory_id' => $inventoryItem->id,
+                'user_id' => Auth::id(),
+                'reason' => $request->request_reason,
+                'date_needed' => $request->request_date_needed,
+                'status' => 'Pending',
+            ]);
+            
+            return redirect()->route('inventory.index')
+                ->with('success', 'Asset request submitted successfully.');
+                
+        } catch (\Exception $e) {
+            Log::error('Error requesting asset: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to request asset. Error: ' . $e->getMessage());
         }
     }
 }

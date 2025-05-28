@@ -77,6 +77,26 @@
                             @method('PUT')
                             
                             <div class="row">
+                                <!-- Asset Image (1 column) -->
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label>Asset Image</label>
+                                        <input type="file" name="asset_image" class="form-control" accept="image/*">
+                                        
+                                        @if($inventoryItem->image_path)
+                                            <div class="text-muted mt-1">
+                                                Current image: {{ basename($inventoryItem->image_path) }}
+                                            </div>
+                                        @endif
+                                        
+                                        @error('asset_image', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
                                 <!-- Asset Name -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -88,26 +108,6 @@
                                     </div>
                                 </div>
                     
-                                <!-- Category -->
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label for="categories">Asset Category<span class="text-danger"> *</span></label>
-                                        <select name="category_id" id="category_select" class="form-control">
-                                            <option value="" disabled>Select a category</option>
-                                            @foreach ($categories as $id => $category)
-                                                <option value="{{ $id }}" {{ old('category_id', $inventoryItem->category_id) == $id ? 'selected' : '' }}>
-                                                    {{ $category }} 
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('category_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
                                 <!-- Asset Type -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -125,19 +125,27 @@
                                         @enderror
                                     </div>
                                 </div>
+                            </div>
 
+                            <div class="row">
+                                <!-- Category -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Asset Tag<span class="text-danger"> *</span></label>
-                                        <input type="text" name="asset_tag" value="{{ old('asset_tag', $inventoryItem->asset_tag) }}" class="form-control" readonly>
-                                        @error('asset_tag', 'inventoryForm')
+                                        <label for="categories">Asset Category<span class="text-danger"> *</span></label>
+                                        <select name="category_id" id="category_select" class="form-control">
+                                            <option value="" disabled>Select a category</option>
+                                            @foreach ($categories as $id => $category)
+                                                <option value="{{ $id }}" {{ old('category_id', $inventoryItem->category_id) == $id ? 'selected' : '' }}>
+                                                    {{ $category }} 
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('category_id', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Serial Number<span class="text-danger"> *</span></label>
@@ -147,24 +155,14 @@
                                         @enderror
                                     </div>
                                 </div>
-                
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Model Number<span class="text-danger"> *</span></label>
-                                        <input type="text" name="model_no" value="{{ old('model_no', $inventoryItem->model_no) }}" class="form-control" placeholder="Enter model number">
-                                        @error('model_no', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
                             </div>
                 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Date Purchased<span class="text-danger"> *</span></label>
-                                        <input type="date" name="date_purchased" value="{{ old('date_purchased', $inventoryItem->date_purchased) }}" class="form-control">
-                                        @error('date_purchased', 'inventoryForm')
+                                        <label>Model Number<span class="text-danger"> *</span></label>
+                                        <input type="text" name="model_no" value="{{ old('model_no', $inventoryItem->model_no) }}" class="form-control" placeholder="Enter model number">
+                                        @error('model_no', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -184,9 +182,9 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Purchased From<span class="text-danger"> *</span></label>
-                                        <input type="text" name="purchased_from" value="{{ old('purchased_from', $inventoryItem->purchased_from) }}" class="form-control" placeholder="Enter where purchased">
-                                        @error('purchased_from', 'inventoryForm')
+                                        <label>Date Purchased<span class="text-danger"> *</span></label>
+                                        <input type="date" name="date_purchased" value="{{ old('date_purchased', $inventoryItem->date_purchased) }}" class="form-control">
+                                        @error('date_purchased', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -194,16 +192,21 @@
                 
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Asset Image</label>
-                                        <input type="file" name="asset_image" class="form-control" accept="image/*">
-                                        
-                                        @if($inventoryItem->image_path)
-                                            <div class="text-muted mt-1">
-                                                Current image: {{ basename($inventoryItem->image_path) }}
-                                            </div>
-                                        @endif
-                                        
-                                        @error('asset_image', 'inventoryForm')
+                                        <label>Purchased From<span class="text-danger"> *</span></label>
+                                        <input type="text" name="purchased_from" value="{{ old('purchased_from', $inventoryItem->purchased_from) }}" class="form-control" placeholder="Enter where purchased">
+                                        @error('purchased_from', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label>Asset Tag<span class="text-danger"> *</span></label>
+                                        <input type="text" name="asset_tag" id="asset_tag_input" value="{{ old('asset_tag', $inventoryItem->asset_tag) }}" class="form-control" readonly>
+                                        @error('asset_tag', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -276,178 +279,179 @@
                                                     
                             <!-- Asset-specific Custom Fields -->
                             <div id="asset-fields-container">
-                                <h5 class="mt-4 mb-3">Custom Fields</h5>
-                                @foreach($assetCustomFields as $field)
-                                    <div class="form-group mb-3">
-                                        <label>
-                                            {{ $field->name }}
-                                            @if($field->is_required) <span class="text-danger">*</span> @endif
-                                        </label>
-                                        
-                                        @php
-                                            $fieldValue = '';
-                                            if (old('custom_fields.'.$field->name)) {
-                                                $fieldValue = old('custom_fields.'.$field->name);
-                                            } elseif (isset($inventoryItem->custom_fields[$field->name])) {
-                                                $fieldValue = $inventoryItem->custom_fields[$field->name];
-                                            }
-                                        @endphp
-                                        
-                                        @switch($field->type)
-                                            @case('Text')
-                                                <input type="text" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ $fieldValue }}">
-                                                @break
+                                <div class="row">
+                                    @foreach($assetCustomFields as $field)
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label>
+                                                    {{ $field->name }}
+                                                    @if($field->is_required) <span class="text-danger">*</span> @endif
+                                                </label>
                                                 
-                                            @case('Number')
-                                                <input type="number" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ $fieldValue }}">
-                                                @break
+                                                @php
+                                                    $fieldValue = '';
+                                                    if (old('custom_fields.'.$field->name)) {
+                                                        $fieldValue = old('custom_fields.'.$field->name);
+                                                    } elseif (isset($inventoryItem->custom_fields[$field->name])) {
+                                                        $fieldValue = $inventoryItem->custom_fields[$field->name];
+                                                    }
+                                                @endphp
                                                 
-                                            @case('Date')
-                                                <input type="date" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ $fieldValue }}">
-                                                @break
-                                                
-                                            @case('Select')
-                                                <select name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">
-                                                    <option value="">Select an option</option>
-                                                    @foreach(json_decode($field->options) as $option)
-                                                        <option value="{{ $option }}" {{ $fieldValue == $option ? 'selected' : '' }}>
-                                                            {{ $option }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @break
-                                                
-                                            @case('Textarea')
-                                                <textarea 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">{{ $fieldValue }}</textarea>
-                                                @break
-                                                
-                                            @case('Checkbox')
-                                                <div>
-                                                    @foreach(json_decode($field->options) as $option)
-                                                        <div class="form-check">
-                                                            <input type="checkbox" 
-                                                                class="form-check-input @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                                name="custom_fields[{{ $field->name }}][]" 
-                                                                value="{{ $option }}"
-                                                                id="{{ $field->name }}_{{ $loop->index }}"
-                                                                {{ is_array($fieldValue) && in_array($option, $fieldValue) ? 'checked' : '' }}>
-                                                            <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
-                                                                {{ $option }}
-                                                            </label>
+                                                @switch($field->type)
+                                                    @case('Text')
+                                                        <input type="text" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ $fieldValue }}">
+                                                        @break
+                                                        
+                                                    @case('Number')
+                                                        <input type="number" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ $fieldValue }}">
+                                                        @break
+                                                        
+                                                    @case('Date')
+                                                        <input type="date" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ $fieldValue }}">
+                                                        @break
+                                                        
+                                                    @case('Select')
+                                                        <select name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">
+                                                            <option value="">Select an option</option>
+                                                            @foreach(json_decode($field->options) as $option)
+                                                                <option value="{{ $option }}" {{ $fieldValue == $option ? 'selected' : '' }}>
+                                                                    {{ $option }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @break
+                                                        
+                                                    @case('Textarea')
+                                                        <textarea 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">{{ $fieldValue }}</textarea>
+                                                        @break
+                                                        
+                                                    @case('Checkbox')
+                                                        <div>
+                                                            @foreach(json_decode($field->options) as $option)
+                                                                <div class="form-check">
+                                                                    <input type="checkbox" 
+                                                                        class="form-check-input @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                        name="custom_fields[{{ $field->name }}][]" 
+                                                                        value="{{ $option }}"
+                                                                        id="{{ $field->name }}_{{ $loop->index }}"
+                                                                        {{ is_array($fieldValue) && in_array($option, $fieldValue) ? 'checked' : '' }}>
+                                                                    <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
+                                                                        {{ $option }}
+                                                                    </label>
+                                                                </div>
+                                                            @endforeach
                                                         </div>
-                                                    @endforeach
-                                                </div>
-                                                @break
-                                        @endswitch
-                                        
-                                        @error('custom_fields.' . $field->name, 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                @endforeach
+                                                        @break
+                                                @endswitch
+                                                
+                                                @error('custom_fields.' . $field->name, 'inventoryForm')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                             
                             <!-- Category-specific Custom Fields -->
                             @if(isset($categoryCustomFields) && count($categoryCustomFields) > 0)
                                 <div id="category-fields-container">
-                                    <h5 class="mt-2 mb-3">Category-specific Fields</h5>
-                                    @foreach($categoryCustomFields as $field)
-                                        <div class="form-group mb-3">
-                                            <label>
-                                                {{ $field->name }}
-                                                @if($field->is_required) <span class="text-danger">*</span> @endif
-                                            </label>
-                                            
-                                            @php
-                                                $fieldValue = '';
-                                                if (old('custom_fields.'.$field->name)) {
-                                                    $fieldValue = old('custom_fields.'.$field->name);
-                                                } elseif (isset($inventoryItem->custom_fields[$field->name])) {
-                                                    $fieldValue = $inventoryItem->custom_fields[$field->name];
-                                                }
-                                            @endphp
-                                            
-                                            @switch($field->type)
-                                                @case('Text')
-                                                    <input type="text" 
-                                                        name="custom_fields[{{ $field->name }}]" 
-                                                        class="form-control" 
-                                                        value="{{ $fieldValue }}"
-                                                        @if($field->is_required) required @endif>
-                                                    @break
+                                    <div class="row">
+                                        @foreach($categoryCustomFields as $field)
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label>
+                                                        {{ $field->name }}
+                                                        @if($field->is_required) <span class="text-danger">*</span> @endif
+                                                    </label>
                                                     
-                                                @case('Number')
-                                                    <input type="number" 
-                                                        name="custom_fields[{{ $field->name }}]" 
-                                                        class="form-control" 
-                                                        value="{{ $fieldValue }}"
-                                                        @if($field->is_required) required @endif>
-                                                    @break
+                                                    @php
+                                                        $fieldValue = '';
+                                                        if (old('custom_fields.'.$field->name)) {
+                                                            $fieldValue = old('custom_fields.'.$field->name);
+                                                        } elseif (isset($inventoryItem->custom_fields[$field->name])) {
+                                                            $fieldValue = $inventoryItem->custom_fields[$field->name];
+                                                        }
+                                                    @endphp
                                                     
-                                                @case('Date')
-                                                    <input type="date" 
-                                                        name="custom_fields[{{ $field->name }}]" 
-                                                        class="form-control" 
-                                                        value="{{ $fieldValue }}"
-                                                        @if($field->is_required) required @endif>
-                                                    @break
-                                                    
-                                                @case('Select')
-                                                    <select name="custom_fields[{{ $field->name }}]" 
-                                                        class="form-control"
-                                                        @if($field->is_required) required @endif>
-                                                        <option value="">Select an option</option>
-                                                        @foreach(json_decode($field->options) as $option)
-                                                            <option value="{{ $option }}" {{ $fieldValue == $option ? 'selected' : '' }}>
-                                                                {{ $option }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @break
-                                                    
-                                                @case('Textarea')
-                                                    <textarea 
-                                                        name="custom_fields[{{ $field->name }}]" 
-                                                        class="form-control"
-                                                        @if($field->is_required) required @endif>{{ $fieldValue }}</textarea>
-                                                    @break
-                                                    
-                                                @case('Checkbox')
-                                                    <div>
-                                                        @foreach(json_decode($field->options) as $option)
-                                                            <div class="form-check">
-                                                                <input type="checkbox" 
-                                                                    class="form-check-input" 
-                                                                    name="custom_fields[{{ $field->name }}][]" 
-                                                                    value="{{ $option }}"
-                                                                    id="{{ $field->name }}_{{ $loop->index }}"
-                                                                    {{ is_array($fieldValue) && in_array($option, $fieldValue) ? 'checked' : '' }}>
-                                                                <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
-                                                                    {{ $option }}
-                                                                </label>
+                                                    @switch($field->type)
+                                                        @case('Text')
+                                                            <input type="text" 
+                                                                name="custom_fields[{{ $field->name }}]" 
+                                                                class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                value="{{ $fieldValue }}">
+                                                            @break
+                                                            
+                                                        @case('Number')
+                                                            <input type="number" 
+                                                                name="custom_fields[{{ $field->name }}]" 
+                                                                class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                value="{{ $fieldValue }}">
+                                                            @break
+                                                            
+                                                        @case('Date')
+                                                            <input type="date" 
+                                                                name="custom_fields[{{ $field->name }}]" 
+                                                                class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                value="{{ $fieldValue }}">
+                                                            @break
+                                                            
+                                                        @case('Select')
+                                                            <select name="custom_fields[{{ $field->name }}]" 
+                                                                class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">
+                                                                <option value="">Select an option</option>
+                                                                @foreach(json_decode($field->options) as $option)
+                                                                    <option value="{{ $option }}" {{ $fieldValue == $option ? 'selected' : '' }}>
+                                                                        {{ $option }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            @break
+                                                            
+                                                        @case('Textarea')
+                                                            <textarea 
+                                                                name="custom_fields[{{ $field->name }}]" 
+                                                                class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">{{ $fieldValue }}</textarea>
+                                                            @break
+                                                            
+                                                        @case('Checkbox')
+                                                            <div>
+                                                                @foreach(json_decode($field->options) as $option)
+                                                                    <div class="form-check">
+                                                                        <input type="checkbox" 
+                                                                            class="form-check-input @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                            name="custom_fields[{{ $field->name }}][]" 
+                                                                            value="{{ $option }}"
+                                                                            id="{{ $field->name }}_{{ $loop->index }}"
+                                                                            {{ is_array($fieldValue) && in_array($option, $fieldValue) ? 'checked' : '' }}>
+                                                                        <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
+                                                                            {{ $option }}
+                                                                        </label>
+                                                                    </div>
+                                                                @endforeach
                                                             </div>
-                                                        @endforeach
-                                                    </div>
-                                                    @break
-                                            @endswitch
-                                            
-                                            @error('custom_fields.' . $field->name, 'inventoryForm')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    @endforeach
+                                                            @break
+                                                    @endswitch
+                                                    
+                                                    @error('custom_fields.' . $field->name, 'inventoryForm')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
                             @endif
 
@@ -604,6 +608,9 @@
                 // Restore the selected department if there was one
                 if (departmentId && departmentId !== 'null') {
                     document.getElementById('department_id').value = departmentId;
+                    
+                    // Fetch and set the location for this department
+                    fetchDepartmentLocation(departmentId);
                 }
             });
             
@@ -630,6 +637,9 @@
             } else if (departmentId && departmentId !== 'null') {
                 document.getElementById('department_assignment').style.display = 'block';
                 document.getElementById('department-btn').classList.add('active');
+                
+                // Fetch and set the location for this department
+                fetchDepartmentLocation(departmentId);
             } else if (locationId && locationId !== 'null') {
                 document.getElementById('location_assignment').style.display = 'block';
                 document.getElementById('location-btn').classList.add('active');
@@ -702,23 +712,29 @@
             if (departmentSelect) {
                 departmentSelect.addEventListener('change', function() {
                     if (this.value) {
-                        // Fetch the department's location_id
-                        fetch(`/departments/get-location/${this.value}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.location_id) {
-                                    // Set the location_id field
-                                    locationSelect.value = data.location_id;
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error fetching department location:', error);
-                            });
+                        fetchDepartmentLocation(this.value);
                     } else {
                         // Clear the location_id field if no department is selected
                         locationSelect.value = '';
                     }
                 });
+            }
+            
+            // Function to fetch department location
+            function fetchDepartmentLocation(departmentId) {
+                // Fetch the department's location_id
+                fetch(`/departments/get-location/${departmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.location_id) {
+                            // Set the location_id field
+                            locationSelect.value = data.location_id;
+                            console.log('Department location set to:', data.location_id);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching department location:', error);
+                    });
             }
         } catch (e) {
             console.error('Error in DOMContentLoaded:', e);
@@ -752,22 +768,6 @@
                     imagePreview.src = e.target.result;
                 }
                 reader.readAsDataURL(this.files[0]);
-            }
-        });
-    }
-
-    // Automatically set department when user is selected
-    const userSelect = document.getElementById('user_id');
-    const departmentSelect = document.getElementById('department_id');
-    
-    if (userSelect && departmentSelect) {
-        userSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                const departmentId = selectedOption.getAttribute('data-department');
-                if (departmentId) {
-                    departmentSelect.value = departmentId;
-                }
             }
         });
     }
@@ -812,6 +812,89 @@
                 return true;
             });
         }
+        
+        // Function to handle validation errors for category fields
+        function displayCategoryFieldErrors() {
+            // Check if we have validation errors from Laravel
+            @if($errors->inventoryForm->any())
+                // Get all the errors
+                const errors = @json($errors->inventoryForm->messages());
+                console.log('Validation errors:', errors);
+                
+                // Loop through errors and find category custom field errors
+                for (const key in errors) {
+                    if (key.startsWith('custom_fields.')) {
+                        const fieldName = key.replace('custom_fields.', '');
+                        console.log('Field with error:', fieldName);
+                        
+                        // Find the error element in the category fields container
+                        const errorElement = document.querySelector(`#category-fields-container #error_${fieldName.replace(/\s+/g, '_')}`);
+                        if (errorElement) {
+                            errorElement.textContent = errors[key][0];
+                            
+                            // Also add is-invalid class to the input
+                            const inputElement = errorElement.previousElementSibling;
+                            if (inputElement) {
+                                inputElement.classList.add('is-invalid');
+                            }
+                        }
+                    }
+                }
+            @endif
+        }
+        
+        // Asset Tag generation functionality
+        const categorySelect = document.getElementById('category_select');
+        const itemNameInput = document.querySelector('input[name="item_name"]');
+        const datePurchasedInput = document.querySelector('input[name="date_purchased"]');
+        const assetTagInput = document.getElementById('asset_tag_input');
+        
+        // Function to generate asset tag
+        function generateAssetTag() {
+            // Only generate if all required fields are filled
+            if (!categorySelect || !categorySelect.value || 
+                !datePurchasedInput || !datePurchasedInput.value || 
+                !itemNameInput || !itemNameInput.value) {
+                return;
+            }
+            
+            // Get category text
+            const categoryText = categorySelect.options[categorySelect.selectedIndex].text;
+            
+            // Get first letter of each word in category
+            const categoryCode = categoryText
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .join('');
+            
+            // Format date as MMYYYY
+            const purchaseDate = new Date(datePurchasedInput.value);
+            const month = String(purchaseDate.getMonth() + 1).padStart(2, '0');
+            const year = purchaseDate.getFullYear();
+            const dateCode = month + year;
+            
+            // Format name (remove vowels, with no character limit)
+            let nameCode = itemNameInput.value.replace(/[aeiou\s]/gi, '').toUpperCase();
+            if (nameCode.length < 2) {
+                nameCode = itemNameInput.value.toUpperCase();
+            }
+            
+            // Combine to create tag in format: CATEGORY-MMYYYY-NAME
+            const assetTag = `${categoryCode}-${dateCode}-${nameCode}`;
+            
+            // Update the asset tag input
+            assetTagInput.value = assetTag;
+        }
+        
+        // Add event listeners to generate tag when relevant fields change
+        if (categorySelect && itemNameInput && datePurchasedInput && assetTagInput) {
+            categorySelect.addEventListener('change', generateAssetTag);
+            itemNameInput.addEventListener('input', generateAssetTag);
+            datePurchasedInput.addEventListener('change', generateAssetTag);
+        }
+        
+        // Check for validation errors when the page loads
+        displayCategoryFieldErrors();
     });
 </script>
 

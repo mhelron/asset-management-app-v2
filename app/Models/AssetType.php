@@ -15,6 +15,7 @@ class AssetType extends Model
         'desc',
         'status',
         'requires_qr_code',
+        'is_requestable',
     ];
 
     public function inventories()

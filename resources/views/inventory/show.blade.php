@@ -219,20 +219,6 @@
                                             <i class="bi bi-box-seam me-2"></i>Asset Details
                                         </button>
                                     </li>
-                                    @if($inventoryItem->custom_fields && count($inventoryItem->custom_fields) > 0)
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-4 py-3" id="asset_custom_fields" data-bs-toggle="tab" data-bs-target="#custom_fields" type="button" role="tab" aria-controls="custom_fields" aria-selected="false">
-                                            <i class="bi bi-list-check me-2"></i>Custom Fields
-                                        </button>
-                                    </li>
-                                    @endif
-                                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code && $qrCode)
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-4 py-3" id="asset_qrcode" data-bs-toggle="tab" data-bs-target="#qrcode" type="button" role="tab" aria-controls="qrcode" aria-selected="false">
-                                            <i class="bi bi-qr-code me-2"></i>QR Code
-                                        </button>
-                                    </li>
-                                    @endif
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link px-4 py-3" id="asset_history" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
                                             <i class="bi bi-clock-history me-2"></i>History
@@ -243,27 +229,46 @@
                                 <div class="tab-content mt-4" id="assetTabsContent">
                                     <!-- Asset Profile Tab -->
                                     <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="asset_profile">
-                                        <div class="row align-items-center">
-                                            <!-- Asset Image (Left) -->
-                                            <div class="col-md-3 text-center">
-                                                @if($inventoryItem->image_path)
-                                                    <img src="{{ asset('storage/' . $inventoryItem->image_path) }}" alt="{{ $inventoryItem->item_name }}" class="img-fluid rounded shadow mb-3" style="max-width: 200px; max-height: 200px;">
-                                                @else
-                                                    <div class="rounded bg-light d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
-                                                        <i class="bi bi-box-seam fs-1 text-secondary"></i>
+                                        <div class="row">
+                                            <!-- Asset Image and QR Code (Left) -->
+                                            <div class="col-md-4 text-center">
+                                                <div class="mb-4">
+                                                    @if($inventoryItem->image_path)
+                                                        <img src="{{ asset('storage/' . $inventoryItem->image_path) }}" alt="{{ $inventoryItem->item_name }}" class="img-fluid rounded shadow mb-3" style="max-width: 100%; max-height: 250px;">
+                                                    @else
+                                                        <div class="rounded bg-light d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 200px; height: 200px;">
+                                                            <i class="bi bi-box-seam fs-1 text-secondary"></i>
+                                                        </div>
+                                                    @endif
+                                                    <h4 class="mt-3 fw-bold">{{ $inventoryItem->item_name }}</h4>
+                                                    <p class="text-muted">{{ $inventoryItem->category->category ?? 'N/A' }}</p>
+                                                    <span class="badge bg-{{ $inventoryItem->status == 'Active' ? 'success' : 'warning' }} px-3 py-2">
+                                                        {{ $inventoryItem->status ?? 'Active' }}
+                                                    </span>
+                                                </div>
+                                                
+                                                <!-- QR Code Section (moved from tab) -->
+                                                @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code && $qrCode)
+                                                <div class="mt-4 pt-2 border-top">
+                                                    <h5 class="mb-3">QR Code</h5>
+                                                    <div class="mb-3">
+                                                        {!! $qrCode !!}
                                                     </div>
+                                                    <div class="mt-2">
+                                                        <p class="fw-bold mb-1">{{ $inventoryItem->asset_tag }}</p>
+                                                        <p class="mb-2">{{ $inventoryItem->serial_no }}</p>
+                                                        <button onclick="printQRCode()" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-print me-1"></i> Print QR
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 @endif
-                                                <h4 class="mt-3 fw-bold">{{ $inventoryItem->item_name }}</h4>
-                                                <p class="text-muted">{{ $inventoryItem->category->category ?? 'N/A' }}</p>
-                                                <span class="badge bg-{{ $inventoryItem->status == 'Active' ? 'success' : 'warning' }} px-3 py-2">
-                                                    {{ $inventoryItem->status ?? 'Active' }}
-                                                </span>
                                             </div>
                                             <!-- Asset Information (Right) -->
-                                            <div class="col-md-9">
+                                            <div class="col-md-8">
                                                 <table class="table table-striped table-hover">
                                                     <tr>
-                                                        <th width="200">Asset Tag</th>
+                                                        <th width="180">Asset Tag</th>
                                                         <td>{{ $inventoryItem->asset_tag }}</td>
                                                     </tr>
                                                     <tr>
@@ -310,80 +315,46 @@
                                                         <th>Purchased From</th>
                                                         <td>{{ $inventoryItem->purchased_from }}</td>
                                                     </tr>
+                                                    <tr>
+                                                        <th>Location</th>
+                                                        <td>{{ $inventoryItem->location->name ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Manufacturer</th>
+                                                        <td>{{ $inventoryItem->manufacturer }}</td>
+                                                    </tr>
+                                                    
+                                                    <!-- Include Custom Fields directly in details tab -->
+                                                    @if($inventoryItem->custom_fields && count($inventoryItem->custom_fields) > 0)
+                                                        @foreach($allCustomFields as $field)
+                                                            @if(isset($inventoryItem->custom_fields[$field->name]))
+                                                            <tr>
+                                                                <th>{{ $field->name }}</th>
+                                                                <td>
+                                                                    @php
+                                                                        $fieldValue = $inventoryItem->custom_fields[$field->name];
+                                                                    @endphp
+                                                                    
+                                                                    @if(is_array($fieldValue))
+                                                                        @if(isset($fieldValue['original_name']))
+                                                                            <a href="{{ asset('storage/' . $fieldValue['path']) }}" target="_blank">
+                                                                                {{ $fieldValue['original_name'] }}
+                                                                            </a>
+                                                                        @else
+                                                                            {{ implode(', ', $fieldValue) }}
+                                                                        @endif
+                                                                    @else
+                                                                        {{ $fieldValue }}
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+                                                            @endif
+                                                        @endforeach
+                                                    @endif
                                                 </table>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Custom Fields Tab -->
-                                    @if($inventoryItem->custom_fields && count($inventoryItem->custom_fields) > 0)
-                                    <div class="tab-pane fade" id="custom_fields" role="tabpanel" aria-labelledby="asset_custom_fields">
-                                        <div class="row">
-                                            @foreach($allCustomFields as $field)
-                                                @if(isset($inventoryItem->custom_fields[$field->name]))
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="d-flex">
-                                                        <div class="fw-bold text-muted me-2" style="width: 150px;">{{ $field->name }}:</div>
-                                                        <div>
-                                                            @php
-                                                                $fieldValue = $inventoryItem->custom_fields[$field->name];
-                                                            @endphp
-                                                            
-                                                            @if(is_array($fieldValue))
-                                                                @if(isset($fieldValue['original_name']))
-                                                                    <a href="{{ asset('storage/' . $fieldValue['path']) }}" target="_blank">
-                                                                        {{ $fieldValue['original_name'] }}
-                                                                    </a>
-                                                                @else
-                                                                    {{ implode(', ', $fieldValue) }}
-                                                                @endif
-                                                            @else
-                                                                {{ $fieldValue }}
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    @endif
-                                    
-                                    <!-- QR Code Tab -->
-                                    @if(isset($inventoryItem->assetType) && $inventoryItem->assetType->requires_qr_code && $qrCode)
-                                    <div class="tab-pane fade" id="qrcode" role="tabpanel" aria-labelledby="asset_qrcode">
-                                        <div class="row">
-                                            <div class="col-md-12 text-center">
-                                                <div class="mb-4">
-                                                    <h4 class="mb-3">QR Code for {{ $inventoryItem->item_name }}</h4>
-                                                    <div class="mb-3">
-                                                        {!! $qrCode !!}
-                                                    </div>
-                                                    <div class="mt-3">
-                                                        <p class="font-weight-bold">{{ $inventoryItem->asset_tag }}</p>
-                                                        <p>{{ $inventoryItem->serial_no }}</p>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-4 pt-4 border-top">
-                                                    <h5>QR Code Testing Information</h5>
-                                                    <p>When scanned, this QR code will open the following URL:</p>
-                                                    <div class="input-group mb-3">
-                                                        <input type="text" class="form-control" value="{{ route('inventory.show', $inventoryItem->id) }}" id="qrUrl" readonly>
-                                                        <button class="btn btn-outline-secondary" type="button" onclick="copyUrl()">Copy</button>
-                                                    </div>
-                                                    <div class="d-flex justify-content-center gap-2 mt-3">
-                                                        <a href="{{ route('inventory.test-qr', $inventoryItem->id) }}" target="_blank" class="btn btn-success">
-                                                            <i class="fas fa-external-link-alt me-1"></i> Test Link
-                                                        </a>
-                                                        <button onclick="printQRCode()" class="btn btn-primary">
-                                                            <i class="fas fa-print me-1"></i> Print QR Code
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endif
                                     
                                     <!-- History Tab -->
                                     <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="asset_history">
@@ -420,7 +391,7 @@
                                                     <p class="comment-user">{{ $note->user ? $note->user->first_name . ' ' . $note->user->last_name : 'Unknown User' }}</p>
                                                     <p class="comment-time">{{ $note->created_at->setTimezone('Asia/Manila')->format('F d, Y h:i A') }}</p>
                                                 </div>
-                                                @if(Auth::id() == $note->user_id)
+                                                @if(Auth::id() == $note->user_id && !str_contains(isset($note->id) ? $note->id : '', 'transfer_'))
                                                 <div class="comment-actions">
                                                     <button type="button" class="btn btn-sm text-primary edit-note-btn" data-id="{{ $note->id }}" data-content="{{ $note->content }}" data-bs-toggle="modal" data-bs-target="#editNoteModal">
                                                         <i class="bi bi-pencil-square"></i>
@@ -589,11 +560,20 @@
 
     // Function to print just the QR code
     function printQRCode() {
-        const printContent = document.getElementById('qrcode').innerHTML;
+        // Get the QR code content from the main page
+        const qrCodeSection = document.querySelector('.col-md-4 .mt-4.pt-2');
+        
+        if (!qrCodeSection) {
+            alert('QR code not found');
+            return;
+        }
+        
+        const printContent = qrCodeSection.innerHTML;
         const originalContent = document.body.innerHTML;
         
         document.body.innerHTML = `
             <div style="text-align: center; padding: 20px;">
+                <h3>QR Code for ${document.querySelector('.col-md-4 h4').textContent}</h3>
                 ${printContent}
             </div>
             <style>
@@ -661,9 +641,29 @@
     
     // Function to copy QR URL to clipboard
     function copyUrl() {
-        const urlInput = document.getElementById('qrUrl');
-        urlInput.select();
+        const assetUrl = "{{ route('inventory.show', $inventoryItem->id) }}";
+        
+        // Use modern clipboard API if available
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(assetUrl)
+                .then(() => alert('URL copied to clipboard!'))
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    fallbackCopy(assetUrl);
+                });
+        } else {
+            fallbackCopy(assetUrl);
+        }
+    }
+    
+    function fallbackCopy(text) {
+        // Create temporary input element
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
         document.execCommand('copy');
+        document.body.removeChild(input);
         alert('URL copied to clipboard!');
     }
 </script>

@@ -94,10 +94,12 @@
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $department->name }}</td>
                                         <td>
-                                            @if($department->location_id && $department->location)
+                                            @if($department->location_id && isset($department->location) && is_object($department->location))
                                                 {{ $department->location->name }}
-                                            @else
+                                            @elseif(isset($department->location) && is_string($department->location))
                                                 {{ $department->location }}
+                                            @else
+                                                <span class="text-muted">Not assigned</span>
                                             @endif
                                         </td>
                                         <td>{{ Str::limit($department->desc, 30) }}</td>

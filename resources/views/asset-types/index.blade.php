@@ -84,6 +84,8 @@
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Status</th>
+                                        <th>QR Code</th>
+                                        <th>Requestable</th>
                                         <th>Options</th>
                                     </tr>
                                 </thead>
@@ -94,6 +96,20 @@
                                         <td>{{ $assetType->name }}</td>
                                         <td>{{ Str::limit($assetType->desc, 30) }}</td>
                                         <td><span class="badge {{ $assetType->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $assetType->status }}</span></td>
+                                        <td>
+                                            @if($assetType->requires_qr_code)
+                                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Yes</span>
+                                            @else
+                                                <span class="badge bg-secondary"><i class="bi bi-x-lg me-1"></i>No</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($assetType->is_requestable)
+                                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Yes</span>
+                                            @else
+                                                <span class="badge bg-secondary"><i class="bi bi-x-lg me-1"></i>No</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             <div class="d-flex">
                                                 <a href="{{ route('asset-types.edit', $assetType->id) }}" class="btn btn-sm btn-success me-2"><i class="bi bi-pencil-square"></i></a>
@@ -106,7 +122,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="5" class="text-center">No asset types found</td>
+                                        <td colspan="7" class="text-center">No asset types found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

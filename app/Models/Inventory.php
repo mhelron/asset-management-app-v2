@@ -69,4 +69,12 @@ class Inventory extends Model {
     {
         return $this->hasMany(AssetNote::class, 'inventory_id');
     }
+    
+    /**
+     * Determine if the asset is requestable based on its asset type
+     */
+    public function getIsRequestableAttribute()
+    {
+        return $this->assetType && $this->assetType->is_requestable;
+    }
 }

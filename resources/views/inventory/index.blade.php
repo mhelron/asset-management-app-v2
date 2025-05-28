@@ -82,12 +82,12 @@
                             <i class="bi bi-grid-3x3-gap"></i> Grid
                         </button>
                     </div>
-                    <a href="{{ route('inventory.create') }}" class="btn btn-dark"><i class="bi bi-plus-lg me-2"></i>Add Asset</a>
+                    <a href="{{ route('inventory.create') }}" class="btn btn-dark"><i class="bi bi-plus-lg me-2"></i>Add Item</a>
                 </div>
 
                 <div class="card shadow">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold">Asset Inventory</h5>
+                        <h5 class="m-0 fw-bold">Inventory</h5>
                     </div>
                     <div class="card-body">
                         <!-- Table View -->
@@ -102,11 +102,7 @@
                                         <th>Category</th>
                                         <th>Owner</th>
                                         <th>Location</th>
-                                        <th>Model No.</th>
-                                        <th>Serial No.</th>
                                         <th>Asset Tag</th>
-                                        <th>Purchase Date</th>
-                                        <th>Purchased From</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -142,11 +138,7 @@
                                                 <span class="text-muted">Unassigned</span>
                                             @endif
                                         </td>
-                                        <td>{{ $item->model_no }}</td>
-                                        <td>{{ $item->serial_no }}</td>
                                         <td><span class="badge bg-secondary">{{ $item->asset_tag }}</span></td>
-                                        <td>{{ date('M d, Y', strtotime($item->date_purchased)) }}</td>
-                                        <td>{{ $item->purchased_from }}</td>
                                         <td>
                                             <div class="d-flex">
                                                 <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-1" title="View">
@@ -155,6 +147,18 @@
                                                 <a href="{{ route('inventory.edit', $item->id) }}" class="btn btn-sm btn-success me-1" title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
+                                                <button type="button" class="btn btn-sm btn-warning me-1 transfer-btn" 
+                                                    data-bs-toggle="modal" data-bs-target="#transferModal" 
+                                                    data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Transfer">
+                                                    <i class="bi bi-arrow-left-right"></i>
+                                                </button>
+                                                @if($item->is_requestable)
+                                                <button type="button" class="btn btn-sm btn-info me-1 request-btn" 
+                                                    data-bs-toggle="modal" data-bs-target="#requestModal" 
+                                                    data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Request">
+                                                    <i class="bi bi-hand-index-thumb"></i>
+                                                </button>
+                                                @endif
                                                 <button type="button" class="btn btn-sm btn-secondary archive-btn" 
                                                     data-bs-toggle="modal" data-bs-target="#archiveModal" 
                                                     data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Archive">
@@ -165,7 +169,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="13" class="text-center py-4">
+                                        <td colspan="9" class="text-center py-4">
                                             <div class="mb-3 text-muted">
                                                 <i class="bi bi-inbox-fill fs-2"></i>
                                                 <p class="mt-2">No assets found in your inventory</p>
@@ -196,7 +200,17 @@
                                         </h5>
                                         <p class="card-text text-muted small mb-2">{{ $item->assetType->name ?? 'N/A' }} / {{ $item->category->category ?? 'N/A' }}</p>
                                         <p class="card-text small mb-1"><strong>Tag:</strong> {{ $item->asset_tag }}</p>
-                                        <p class="card-text small mb-1"><strong>SN:</strong> {{ $item->serial_no }}</p>
+                                        <p class="card-text small mb-1"><strong>Owner:</strong> 
+                                            @if($item->users_id && $item->user)
+                                                {{ $item->user->first_name }} {{ $item->user->last_name }}
+                                            @elseif($item->department_id && $item->department)
+                                                {{ $item->department->name }}
+                                            @elseif($item->location_id && $item->location)
+                                                {{ $item->location->name }}
+                                            @else
+                                                <span class="text-muted">Unassigned</span>
+                                            @endif
+                                        </p>
                                         <p class="card-text small"><strong>Location:</strong> 
                                             @if($item->location_id && $item->location)
                                                 {{ $item->location->name }}
@@ -212,6 +226,18 @@
                                         <a href="{{ route('inventory.edit', $item->id) }}" class="btn btn-sm btn-success me-2">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
+                                        <button type="button" class="btn btn-sm btn-primary me-2 transfer-btn" 
+                                            data-bs-toggle="modal" data-bs-target="#transferModal" 
+                                            data-id="{{ $item->id }}" data-name="{{ $item->item_name }}">
+                                            <i class="bi bi-arrow-left-right"></i>
+                                        </button>
+                                        @if($item->is_requestable)
+                                        <button type="button" class="btn btn-sm btn-info me-2 request-btn" 
+                                            data-bs-toggle="modal" data-bs-target="#requestModal" 
+                                            data-id="{{ $item->id }}" data-name="{{ $item->item_name }}">
+                                            <i class="bi bi-hand-index-thumb"></i>
+                                        </button>
+                                        @endif
                                         <button type="button" class="btn btn-sm btn-secondary archive-btn" 
                                             data-bs-toggle="modal" data-bs-target="#archiveModal" 
                                             data-id="{{ $item->id }}" data-name="{{ $item->item_name }}">
@@ -262,6 +288,106 @@
     </div>
 </div>
 
+<!-- Transfer Asset Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="transferModalLabel">Transfer Asset</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="transferAssetForm" method="POST" action="">
+                @csrf
+                <div class="modal-body">
+                    <p>Transfer <strong id="transferAssetName"></strong> to:</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Transfer To</label>
+                        <div class="btn-group w-100 mb-3" role="group">
+                            <input type="radio" class="btn-check" name="transfer_to_type" id="transfer_to_user" value="user" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="transfer_to_user">User</label>
+                            
+                            <input type="radio" class="btn-check" name="transfer_to_type" id="transfer_to_department" value="department" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="transfer_to_department">Department</label>
+                            
+                            <input type="radio" class="btn-check" name="transfer_to_type" id="transfer_to_location" value="location" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="transfer_to_location">Location</label>
+                        </div>
+                        
+                        <div id="transfer_user_container">
+                            <select name="users_id" id="transfer_user_id" class="form-select">
+                                <option value="">Select User</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div id="transfer_department_container" style="display: none;">
+                            <select name="department_id" id="transfer_department_id" class="form-select">
+                                <option value="">Select Department</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div id="transfer_location_container" style="display: none;">
+                            <select name="location_id" id="transfer_location_id" class="form-select">
+                                <option value="">Select Location</option>
+                                @foreach($locations as $location)
+                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="transfer_note" class="form-label">Note (Optional)</label>
+                        <textarea class="form-control" id="transfer_note" name="transfer_note" rows="3" placeholder="Add a note about this transfer"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Transfer Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Request Asset Modal -->
+<div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="requestModalLabel">Request Asset</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="requestAssetForm" method="POST" action="">
+                @csrf
+                <div class="modal-body">
+                    <p>Request <strong id="requestAssetName"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="request_reason" class="form-label">Reason for Request <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="request_reason" name="request_reason" rows="3" placeholder="Explain why you need this asset" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="request_date_needed" class="form-label">Date Needed <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="request_date_needed" name="request_date_needed" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Archive Modal Handlers
@@ -272,6 +398,52 @@
     
                 document.getElementById('inventoryName').textContent = inventoryName;
                 document.getElementById('archiveInventoryForm').action = `/inventory/archive-item/${inventoryId}`;
+            });
+        });
+        
+        // Transfer Modal Handlers
+        document.querySelectorAll('.transfer-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const inventoryId = this.getAttribute('data-id');
+                const inventoryName = this.getAttribute('data-name');
+    
+                document.getElementById('transferAssetName').textContent = inventoryName;
+                document.getElementById('transferAssetForm').action = `/inventory/transfer/${inventoryId}`;
+            });
+        });
+        
+        // Request Modal Handlers
+        document.querySelectorAll('.request-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const inventoryId = this.getAttribute('data-id');
+                const inventoryName = this.getAttribute('data-name');
+    
+                document.getElementById('requestAssetName').textContent = inventoryName;
+                document.getElementById('requestAssetForm').action = `/inventory/request/${inventoryId}`;
+                
+                // Set default date needed to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('request_date_needed').valueAsDate = tomorrow;
+            });
+        });
+        
+        // Transfer Type Radio Button Handlers
+        document.querySelectorAll('input[name="transfer_to_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Hide all containers
+                document.getElementById('transfer_user_container').style.display = 'none';
+                document.getElementById('transfer_department_container').style.display = 'none';
+                document.getElementById('transfer_location_container').style.display = 'none';
+                
+                // Show the selected container
+                if (this.value === 'user') {
+                    document.getElementById('transfer_user_container').style.display = 'block';
+                } else if (this.value === 'department') {
+                    document.getElementById('transfer_department_container').style.display = 'block';
+                } else if (this.value === 'location') {
+                    document.getElementById('transfer_location_container').style.display = 'block';
+                }
             });
         });
         

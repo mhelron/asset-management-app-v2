@@ -142,7 +142,6 @@
                                     </td>
                                     <td>{{ Str::limit($item->desc, 30) }}</td>
                                     <td><span class="badge {{ $item->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $item->status }}</span></td>
-
                                     <td>
                                         <div class="d-flex">
                                             <button type="button" class="btn btn-sm btn-dark me-2 view-details-btn"

@@ -73,6 +73,21 @@
                                 </div>
                             </div>
 
+                            <!-- Is Requestable -->
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="is_requestable" id="is_requestable" value="1" {{ old('is_requestable') ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="is_requestable">
+                                            Is Requestable
+                                        </label>
+                                        <small class="form-text text-muted d-block">
+                                            Check this option if assets of this type can be requested by users. This will allow users to submit requests for these assets.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Submit button -->
                             <div class="form-group mb-3">
                                 <button type="submit" class="btn btn-dark float-end"><i class="bi bi-plus-lg me-2"></i>Add Asset Type</button>

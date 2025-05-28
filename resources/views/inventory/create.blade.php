@@ -81,8 +81,28 @@
                         <form action="{{ route('inventory.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="row">
-                                 <!-- Asset Name -->
-                                 <div class="col-md-6">
+                                <!-- Asset Image (1 column) -->
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label>Asset Image</label>
+                                        <input type="file" name="asset_image" class="form-control" accept="image/*">
+                                        
+                                        @if(old('asset_image_name'))
+                                            <div class="text-info mt-1">
+                                                Previously selected: {{ old('asset_image_name') }}
+                                            </div>
+                                        @endif
+                                        
+                                        @error('asset_image', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Asset Name -->
+                                <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Asset Name<span class="text-danger"> *</span></label>
                                         <input type="text" name="item_name" value="{{ old('item_name') }}" class="form-control" placeholder="Enter asset name">
@@ -92,26 +112,6 @@
                                     </div>
                                 </div>
                     
-                                <!-- Category -->
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label for="categories">Asset Category<span class="text-danger"> *</span></label>
-                                        <select name="category_id" id="category_select" class="form-control">
-                                            <option value="" disabled selected>Select a category</option>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->category }} 
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('category_id', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
                                 <!-- Asset Type -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -129,19 +129,27 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+                            </div>
+
+                            <div class="row">
+                                <!-- Category -->
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Asset Tag<span class="text-danger"> *</span></label>
-                                        <input type="text" name="asset_tag" value="{{ $assetTag }}" class="form-control" readonly>
-                                        @error('asset_tag', 'inventoryForm')
+                                        <label for="categories">Asset Category<span class="text-danger"> *</span></label>
+                                        <select name="category_id" id="category_select" class="form-control">
+                                            <option value="" disabled selected>Select a category</option>
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->category }} 
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('category_id', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
                 
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label>Serial Number<span class="text-danger"> *</span></label>
@@ -151,24 +159,14 @@
                                         @enderror
                                     </div>
                                 </div>
-                
-                                <div class="col-md-6">
-                                    <div class="form-group mb-3">
-                                        <label>Model Number<span class="text-danger"> *</span></label>
-                                        <input type="text" name="model_no" value="{{ old('model_no') }}" class="form-control" placeholder="Enter model number">
-                                        @error('model_no', 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
                             </div>
                 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Date Purchased<span class="text-danger"> *</span></label>
-                                        <input type="date" name="date_purchased" value="{{ old('date_purchased') }}" class="form-control">
-                                        @error('date_purchased', 'inventoryForm')
+                                        <label>Model Number<span class="text-danger"> *</span></label>
+                                        <input type="text" name="model_no" value="{{ old('model_no') }}" class="form-control" placeholder="Enter model number">
+                                        @error('model_no', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -188,6 +186,16 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
+                                        <label>Date Purchased<span class="text-danger"> *</span></label>
+                                        <input type="date" name="date_purchased" value="{{ old('date_purchased') }}" class="form-control">
+                                        @error('date_purchased', 'inventoryForm')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
                                         <label>Purchased From<span class="text-danger"> *</span></label>
                                         <input type="text" name="purchased_from" value="{{ old('purchased_from') }}" class="form-control" placeholder="Enter where purchased">
                                         @error('purchased_from', 'inventoryForm')
@@ -195,19 +203,14 @@
                                         @enderror
                                     </div>
                                 </div>
-                                
+                            </div>
+                
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label>Asset Image</label>
-                                        <input type="file" name="asset_image" class="form-control" accept="image/*">
-                                        
-                                        @if(old('asset_image_name'))
-                                            <div class="text-info mt-1">
-                                                Previously selected: {{ old('asset_image_name') }}
-                                            </div>
-                                        @endif
-                                        
-                                        @error('asset_image', 'inventoryForm')
+                                        <label>Asset Tag<span class="text-danger"> *</span></label>
+                                        <input type="text" name="asset_tag" id="asset_tag_input" value="" class="form-control" readonly>
+                                        @error('asset_tag', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -280,78 +283,81 @@
 
                             <!-- Asset-specific Custom Fields -->
                             <div id="asset-fields-container">
-                                <h5 class="mt-4 mb-3">Custom Fields</h5>
-                                @foreach($assetCustomFields as $field)
-                                    <div class="form-group mb-3">
-                                        <label>
-                                            {{ $field->name }}
-                                            @if($field->is_required) <span class="text-danger">*</span> @endif
-                                        </label>
-                                        
-                                        @switch($field->type)
-                                            @case('Text')
-                                                <input type="text" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ old('custom_fields.'.$field->name, '') }}">
-                                                @break
+                                <div class="row">
+                                    @foreach($assetCustomFields as $field)
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label>
+                                                    {{ $field->name }}
+                                                    @if($field->is_required) <span class="text-danger">*</span> @endif
+                                                </label>
                                                 
-                                            @case('Number')
-                                                <input type="number" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ old('custom_fields.'.$field->name, '') }}">
-                                                @break
-                                                
-                                            @case('Date')
-                                                <input type="date" 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                    value="{{ old('custom_fields.'.$field->name, '') }}">
-                                                @break
-                                                
-                                            @case('Select')
-                                                <select name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">
-                                                    <option value="">Select an option</option>
-                                                    @foreach(json_decode($field->options) as $option)
-                                                        <option value="{{ $option }}" {{ old('custom_fields.'.$field->name) == $option ? 'selected' : '' }}>
-                                                            {{ $option }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @break
-                                                
-                                            @case('Textarea')
-                                                <textarea 
-                                                    name="custom_fields[{{ $field->name }}]" 
-                                                    class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">{{ old('custom_fields.'.$field->name, '') }}</textarea>
-                                                @break
-                                                
-                                            @case('Checkbox')
-                                                <div>
-                                                    @foreach(json_decode($field->options) as $option)
-                                                        <div class="form-check">
-                                                            <input type="checkbox" 
-                                                                class="form-check-input @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
-                                                                name="custom_fields[{{ $field->name }}][]" 
-                                                                value="{{ $option }}"
-                                                                id="{{ $field->name }}_{{ $loop->index }}"
-                                                                {{ is_array(old('custom_fields.'.$field->name)) && in_array($option, old('custom_fields.'.$field->name)) ? 'checked' : '' }}>
-                                                            <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
-                                                                {{ $option }}
-                                                            </label>
+                                                @switch($field->type)
+                                                    @case('Text')
+                                                        <input type="text" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ old('custom_fields.'.$field->name, '') }}">
+                                                        @break
+                                                        
+                                                    @case('Number')
+                                                        <input type="number" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ old('custom_fields.'.$field->name, '') }}">
+                                                        @break
+                                                        
+                                                    @case('Date')
+                                                        <input type="date" 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                            value="{{ old('custom_fields.'.$field->name, '') }}">
+                                                        @break
+                                                        
+                                                    @case('Select')
+                                                        <select name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">
+                                                            <option value="">Select an option</option>
+                                                            @foreach(json_decode($field->options) as $option)
+                                                                <option value="{{ $option }}" {{ old('custom_fields.'.$field->name) == $option ? 'selected' : '' }}>
+                                                                    {{ $option }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @break
+                                                        
+                                                    @case('Textarea')
+                                                        <textarea 
+                                                            name="custom_fields[{{ $field->name }}]" 
+                                                            class="form-control @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror">{{ old('custom_fields.'.$field->name, '') }}</textarea>
+                                                        @break
+                                                        
+                                                    @case('Checkbox')
+                                                        <div>
+                                                            @foreach(json_decode($field->options) as $option)
+                                                                <div class="form-check">
+                                                                    <input type="checkbox" 
+                                                                        class="form-check-input @error('custom_fields.'.$field->name, 'inventoryForm') is-invalid @enderror" 
+                                                                        name="custom_fields[{{ $field->name }}][]" 
+                                                                        value="{{ $option }}"
+                                                                        id="{{ $field->name }}_{{ $loop->index }}"
+                                                                        {{ is_array(old('custom_fields.'.$field->name)) && in_array($option, old('custom_fields.'.$field->name)) ? 'checked' : '' }}>
+                                                                    <label class="form-check-label" for="{{ $field->name }}_{{ $loop->index }}">
+                                                                        {{ $option }}
+                                                                    </label>
+                                                                </div>
+                                                            @endforeach
                                                         </div>
-                                                    @endforeach
-                                                </div>
-                                                @break
-                                        @endswitch
-                                        
-                                        @error('custom_fields.' . $field->name, 'inventoryForm')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                @endforeach
+                                                        @break
+                                                @endswitch
+                                                
+                                                @error('custom_fields.' . $field->name, 'inventoryForm')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
 
                             <!-- Category-specific Custom Fields -->
@@ -670,6 +676,36 @@
             });
         }
         
+        // Function to handle validation errors for category fields
+        function displayCategoryFieldErrors() {
+            // Check if we have validation errors from Laravel
+            @if($errors->inventoryForm->any())
+                // Get all the errors
+                const errors = @json($errors->inventoryForm->messages());
+                console.log('Validation errors:', errors);
+                
+                // Loop through errors and find category custom field errors
+                for (const key in errors) {
+                    if (key.startsWith('custom_fields.')) {
+                        const fieldName = key.replace('custom_fields.', '');
+                        console.log('Field with error:', fieldName);
+                        
+                        // Find the error element in the category fields container
+                        const errorElement = document.querySelector(`#category-fields-container #error_${fieldName.replace(/\s+/g, '_')}`);
+                        if (errorElement) {
+                            errorElement.textContent = errors[key][0];
+                            
+                            // Also add is-invalid class to the input
+                            const inputElement = errorElement.previousElementSibling;
+                            if (inputElement) {
+                                inputElement.classList.add('is-invalid');
+                            }
+                        }
+                    }
+                }
+            @endif
+        }
+        
         // Load category-specific custom fields when category is selected
         const categorySelect = document.getElementById('category_select');
         const categoryFieldsContainer = document.getElementById('category-fields-container');
@@ -687,14 +723,17 @@
                             categoryFieldsContainer.innerHTML = '';
                             
                             if (data.length > 0) {
-                                // Add header
-                                const header = document.createElement('h5');
-                                header.className = 'mt-4 mb-3';
-                                header.textContent = 'Category-specific Fields';
-                                categoryFieldsContainer.appendChild(header);
+                                // Create row for 2-column layout
+                                let currentRow = document.createElement('div');
+                                currentRow.className = 'row';
+                                categoryFieldsContainer.appendChild(currentRow);
                                 
                                 // Add each custom field
-                                data.forEach(field => {
+                                data.forEach((field, index) => {
+                                    // Create column for each field
+                                    const colDiv = document.createElement('div');
+                                    colDiv.className = 'col-md-6';
+                                    
                                     const fieldDiv = document.createElement('div');
                                     fieldDiv.className = 'form-group mb-3';
                                     
@@ -720,7 +759,7 @@
                                             input.type = 'text';
                                             input.className = 'form-control';
                                             input.name = `custom_fields[${field.name}]`;
-                                            if (field.is_required) input.required = true;
+                                            // Remove required attribute, will be validated server-side
                                             break;
                                             
                                         case 'Select':
@@ -742,8 +781,6 @@
                                                 optionEl.textContent = option;
                                                 input.appendChild(optionEl);
                                             });
-                                            
-                                            if (field.is_required) input.required = true;
                                             break;
                                             
                                         case 'Checkbox':
@@ -777,12 +814,29 @@
                                             input.type = 'text';
                                             input.className = 'form-control';
                                             input.name = `custom_fields[${field.name}]`;
-                                            if (field.is_required) input.required = true;
                                     }
                                     
                                     fieldDiv.appendChild(input);
-                                    categoryFieldsContainer.appendChild(fieldDiv);
+                                    
+                                    // Add error message container
+                                    const errorSpan = document.createElement('span');
+                                    errorSpan.className = 'text-danger error-message';
+                                    errorSpan.id = `error_${field.name.replace(/\s+/g, '_')}`;
+                                    fieldDiv.appendChild(errorSpan);
+                                    
+                                    colDiv.appendChild(fieldDiv);
+                                    currentRow.appendChild(colDiv);
+                                    
+                                    // Create a new row after every 2 fields
+                                    if (index % 2 === 1 && index < data.length - 1) {
+                                        currentRow = document.createElement('div');
+                                        currentRow.className = 'row';
+                                        categoryFieldsContainer.appendChild(currentRow);
+                                    }
                                 });
+                                
+                                // Display any validation errors after fields are created
+                                setTimeout(displayCategoryFieldErrors, 100);
                             }
                         })
                         .catch(error => {
@@ -797,6 +851,59 @@
             // Trigger the change event if a category is already selected (for page reload with validation errors)
             if (categorySelect.value) {
                 categorySelect.dispatchEvent(new Event('change'));
+            }
+        }
+        
+        // Asset Tag Generation based on Category, Purchase Date and Name
+        const itemNameInput = document.querySelector('input[name="item_name"]');
+        const datePurchasedInput = document.querySelector('input[name="date_purchased"]');
+        const assetTagInput = document.getElementById('asset_tag_input');
+        
+        function generateAssetTag() {
+            // Only generate if all required fields are filled
+            if (!categorySelect || !categorySelect.value || 
+                !datePurchasedInput || !datePurchasedInput.value || 
+                !itemNameInput || !itemNameInput.value) {
+                return;
+            }
+            
+            // Get category text
+            const categoryText = categorySelect.options[categorySelect.selectedIndex].text;
+            
+            // Get first letter of each word in category
+            const categoryCode = categoryText
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .join('');
+            
+            // Format date as MMYYYY
+            const purchaseDate = new Date(datePurchasedInput.value);
+            const month = String(purchaseDate.getMonth() + 1).padStart(2, '0');
+            const year = purchaseDate.getFullYear();
+            const dateCode = month + year;
+            
+            // Format name (remove vowels, with no character limit)
+            let nameCode = itemNameInput.value.replace(/[aeiou\s]/gi, '').toUpperCase();
+            if (nameCode.length < 2) {
+                nameCode = itemNameInput.value.toUpperCase();
+            }
+            
+            // Combine to create tag in format: CATEGORY-MMYYYY-NAME
+            const assetTag = `${categoryCode}-${dateCode}-${nameCode}`;
+            
+            // Update the asset tag input
+            assetTagInput.value = assetTag;
+        }
+        
+        // Add event listeners to generate tag when relevant fields change
+        if (categorySelect && itemNameInput && datePurchasedInput && assetTagInput) {
+            categorySelect.addEventListener('change', generateAssetTag);
+            itemNameInput.addEventListener('input', generateAssetTag);
+            datePurchasedInput.addEventListener('change', generateAssetTag);
+            
+            // Generate initially if all fields have values (for page reload)
+            if (categorySelect.value && datePurchasedInput.value && itemNameInput.value) {
+                generateAssetTag();
             }
         }
     });
