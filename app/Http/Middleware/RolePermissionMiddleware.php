@@ -24,6 +24,8 @@ class RolePermissionMiddleware
             'inventory.archive',
             'inventory.show',
             'inventory.data',
+            'inventory.transfer',
+            'inventory.request'
         ],
         'staff' => [
             'dashboard.index',
@@ -32,6 +34,9 @@ class RolePermissionMiddleware
             'inventory.index',
             'inventory.show',
             'inventory.data',
+            'inventory.transfer',
+            'inventory.request'
+
         ],
     ];
 
