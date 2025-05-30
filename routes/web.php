@@ -10,6 +10,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AssetTypeController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ActivityLogController;
 
 
 //Logout Route
@@ -30,6 +31,9 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
     
     // Dasbord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');   
+
+    // Activity Logs
+    Route::get('/activity-logs', [ActivityLogController::class, 'showLogs'])->name('logs.activity');
 
     // User Routes
     Route::prefix('/users')->group(function () {

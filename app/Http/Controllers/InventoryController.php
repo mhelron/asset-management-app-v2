@@ -17,6 +17,7 @@ use App\Models\AssetNote;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\AssetTransfer;
 use App\Models\AssetRequest;
+use App\Helpers\ActivityLogger;
 
 class InventoryController extends Controller
 {
@@ -480,10 +481,8 @@ class InventoryController extends Controller
                 'custom_fields' => $customFields
             ]);
 
-            Log::info('Inventory item created successfully:', [
-                'id' => $inventory->id,
-                'name' => $inventory->item_name
-            ]);
+            // Log activity
+            ActivityLogger::logCreated('Inventory Item', $request->item_name);
 
             return redirect()->route('inventory.index')
                 ->with('success', 'Asset created successfully.');
@@ -739,6 +738,9 @@ class InventoryController extends Controller
                 'reload_check' => Inventory::find($id)->asset_type_id
             ]);
     
+            // Log activity
+            ActivityLogger::logUpdated('Inventory Item', $request->item_name);
+
             return redirect()->route('inventory.index')
                 ->with('success', 'Asset updated successfully.');
                 
@@ -753,18 +755,19 @@ class InventoryController extends Controller
 
     public function archive($id)
     {
-        try {
-            $inventoryItem = Inventory::findOrFail($id);
-            $inventoryItem->delete();
-            
-            return redirect()->route('inventory.index')
-                ->with('success', 'Asset archived successfully.');
-                
-        } catch (\Exception $e) {
-            Log::error('Error archiving inventory: ' . $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Failed to archive asset. Error: ' . $e->getMessage());
+        $inventory = Inventory::find($id);
+        
+        if (!$inventory) {
+            return back()->with('error', 'Inventory item not found');
         }
+        
+        $itemName = $inventory->item_name;
+        $inventory->delete(); // This is soft delete
+
+        // Log activity
+        ActivityLogger::logArchived('Inventory Item', $itemName);
+
+        return redirect()->route('inventory.index')->with('success', 'Inventory item archived successfully.');
     }
 
     public function show($id)
@@ -861,6 +864,9 @@ class InventoryController extends Controller
             
             $inventoryItem->notes()->save($note);
             
+            // Log activity
+            ActivityLogger::log("Added note to inventory item", $inventoryItem->item_name);
+
             return redirect()->route('inventory.show', $id)
                 ->with('success', 'Note added successfully.');
                 
@@ -881,37 +887,30 @@ class InventoryController extends Controller
      */
     public function updateNote(Request $request, $inventoryId, $noteId)
     {
-        try {
-            $request->validate([
-                'note_content' => 'required|string',
-            ]);
-            
-            $note = AssetNote::findOrFail($noteId);
-            
-            // Ensure the user owns this note
-            if (Auth::id() != $note->user_id) {
-                return redirect()->route('inventory.show', $inventoryId)
-                    ->with('error', 'You do not have permission to edit this note.');
-            }
-            
-            // Process note content to normalize line breaks and remove unnecessary whitespace
-            $content = trim($request->note_content);
-            // Replace consecutive line breaks with a single line break
-            $content = preg_replace('/\r\n|\r|\n/', "\n", $content); // Normalize line breaks
-            $content = preg_replace('/\n{3,}/', "\n\n", $content); // Limit to max 2 consecutive line breaks
-            
-            $note->update([
-                'content' => $content,
-            ]);
-            
-            return redirect()->route('inventory.show', $inventoryId)
-                ->with('success', 'Note updated successfully.');
-                
-        } catch (\Exception $e) {
-            Log::error('Error updating note: ' . $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Failed to update note. Error: ' . $e->getMessage());
-        }
+        $validatedData = $request->validate([
+            'content' => 'required|string'
+        ]);
+        
+        // Get the inventory item
+        $inventory = Inventory::findOrFail($inventoryId);
+        
+        // Find the note belonging to this inventory
+        $note = AssetNote::where('id', $noteId)
+            ->where('inventory_id', $inventoryId)
+            ->firstOrFail();
+        
+        $content = $validatedData['content'];
+        
+        // Update the note
+        $note->update([
+            'content' => $content,
+        ]);
+        
+        // Log activity
+        ActivityLogger::log("Updated note on inventory item", $inventory->item_name);
+
+        return redirect()->route('inventory.show', $inventoryId)
+            ->with('success', 'Note updated successfully.');
     }
 
     /**
@@ -923,25 +922,21 @@ class InventoryController extends Controller
      */
     public function deleteNote($inventoryId, $noteId)
     {
-        try {
-            $note = AssetNote::findOrFail($noteId);
-            
-            // Ensure the user owns this note
-            if (Auth::id() != $note->user_id) {
-                return redirect()->route('inventory.show', $inventoryId)
-                    ->with('error', 'You do not have permission to delete this note.');
-            }
-            
-            $note->delete();
-            
-            return redirect()->route('inventory.show', $inventoryId)
-                ->with('success', 'Note deleted successfully.');
-                
-        } catch (\Exception $e) {
-            Log::error('Error deleting note: ' . $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Failed to delete note. Error: ' . $e->getMessage());
-        }
+        // Get the inventory item
+        $inventory = Inventory::findOrFail($inventoryId);
+        
+        // Find the note belonging to this inventory
+        $note = AssetNote::where('id', $noteId)
+            ->where('inventory_id', $inventoryId)
+            ->firstOrFail();
+        
+        $note->delete();
+        
+        // Log activity
+        ActivityLogger::log("Deleted note from inventory item", $inventory->item_name);
+
+        return redirect()->route('inventory.show', $inventoryId)
+            ->with('success', 'Note deleted successfully.');
     }
 
     /**
@@ -1039,6 +1034,9 @@ class InventoryController extends Controller
                 'status' => 'Completed',
             ]);
             
+            // Log activity
+            ActivityLogger::log("Transferred asset", $inventoryItem->item_name);
+            
             return redirect()->route('inventory.index')
                 ->with('success', 'Asset transferred successfully.');
                 
@@ -1081,6 +1079,9 @@ class InventoryController extends Controller
                 'date_needed' => $request->request_date_needed,
                 'status' => 'Pending',
             ]);
+            
+            // Log activity
+            ActivityLogger::log("Requested asset", $inventoryItem->item_name);
             
             return redirect()->route('inventory.index')
                 ->with('success', 'Asset request submitted successfully.');

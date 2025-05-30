@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Location;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class LocationController extends Controller
 {
@@ -31,6 +32,9 @@ class LocationController extends Controller
             'status' => 'Active',
         ]);
 
+        // Log activity
+        ActivityLogger::logCreated('Location', $validatedData['name']);
+
         return redirect('locations')->with('success', 'Location Added Successfully');
     }
 
@@ -51,13 +55,20 @@ class LocationController extends Controller
         $location = Location::findOrFail($id);
         $location->update($validatedData);
 
+        // Log activity
+        ActivityLogger::logUpdated('Location', $validatedData['name']);
+
         return redirect('locations')->with('success', 'Location Updated Successfully');
     }
 
     public function archive($id)
     {
         $location = Location::findOrFail($id);
+        $locationName = $location->name;
         $location->delete(); // Soft delete (archives the location)
+
+        // Log activity
+        ActivityLogger::logArchived('Location', $locationName);
 
         return redirect('locations')->with('success', 'Location Archived Successfully');
     }

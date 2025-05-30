@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CustomField;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class CustomFieldsController extends Controller
 {
@@ -48,7 +49,7 @@ class CustomFieldsController extends Controller
             'custom_regex.required_if' => 'Custom regex pattern is required.',
         ]);
 
-        CustomField::create([
+        $customField = CustomField::create([
             'name' => $request->name,
             'type' => $request->type,
             'desc' => $request->desc,
@@ -60,6 +61,9 @@ class CustomFieldsController extends Controller
                 : null,
             'applies_to' => $request->applies_to,
         ]);
+
+        // Log activity
+        ActivityLogger::logCreated('Custom Field', $request->name);
 
         return redirect()->route('customfields.index')->with('success', 'Custom Field added successfully!');
     }
@@ -102,8 +106,6 @@ class CustomFieldsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $customField = CustomField::findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
             'is_required' => 'required|boolean',
@@ -121,7 +123,9 @@ class CustomFieldsController extends Controller
             'options.*.distinct' => 'Each option must be unique.',
             'options.*.max' => 'Each option cannot exceed 255 characters.',
             'custom_regex.required_if' => 'Custom regex pattern is required.',
-        ]);;
+        ]);
+
+        $customField = CustomField::findOrFail($id);
 
         $customField->update([
             'name' => $request->name,
@@ -136,6 +140,9 @@ class CustomFieldsController extends Controller
             'applies_to' => $request->applies_to,
         ]);
 
+        // Log activity
+        ActivityLogger::logUpdated('Custom Field', $request->name);
+
         return redirect()->route('customfields.index')->with('success', 'Custom field updated successfully'); 
     }
 
@@ -146,8 +153,12 @@ class CustomFieldsController extends Controller
     {
         try {
             $customField = CustomField::findOrFail($id);
+            $fieldName = $customField->name;
             
             $customField->delete();
+            
+            // Log activity
+            ActivityLogger::logArchived('Custom Field', $fieldName);
             
             return redirect()->route('customfields.index')->with('success', 'Custom field archived successfully');
         } catch (\Exception $e) {

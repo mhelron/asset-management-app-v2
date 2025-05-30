@@ -47,24 +47,6 @@
                                 </div>
                             </div>
 
-                            <!-- Category Type -->
-                            <div class="col-md-12">
-                                <div class="form-group mb-3">
-                                    <label>Category Type<span class="text-danger"> *</span></label>
-                                    <select name="type" class="form-control">
-                                        <option value="">Select Type</option>
-                                        <option value="Asset" {{ old('type') == 'Asset' ? 'selected' : '' }}>Asset</option>
-                                        <option value="Accessory" {{ old('type') == 'Accessory' ? 'selected' : '' }}>Accessory</option>
-                                        <option value="Component" {{ old('type') == 'Component' ? 'selected' : '' }}>Component</option>
-                                        <option value="Consumable" {{ old('type') == 'Consumable' ? 'selected' : '' }}>Consumable</option>
-                                        <option value="License" {{ old('type') == 'License' ? 'selected' : '' }}>License</option>
-                                    </select>
-                                    @error('type')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-                            </div>
-
                             <!-- Description -->
                             <div class="col-md-12">
                                 <div class="form-group mb-3">

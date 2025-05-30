@@ -76,25 +76,14 @@
                     </div>
                     <div class="card-body">
                         <form action="{{ route('categories.index') }}" method="GET" class="row g-3">
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-dark text-white"><i class="bi bi-filter"></i></span>
-                                    <select name="type" id="filter-type" class="form-select">
-                                        <option value="">All Types</option>
-                                        @foreach($categoryTypes as $type)
-                                            <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-5">
+                            <div class="col-md-8">
                                 <div class="input-group">
                                     <span class="input-group-text bg-dark text-white"><i class="bi bi-search"></i></span>
                                     <input type="text" name="search" id="search" class="form-control" placeholder="Search category name..." value="{{ request('search') }}">
                                 </div>
                             </div>
-                            <div class="col-md-3 d-flex align-items-center">
-                                <button type="submit" class="btn btn-dark me-2">Apply Filters</button>
+                            <div class="col-md-4 d-flex align-items-center">
+                                <button type="submit" class="btn btn-dark me-2">Search</button>
                                 <a href="{{ route('categories.index') }}" class="btn btn-secondary">Reset</a>
                             </div>
                         </form>
@@ -113,7 +102,6 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Category Name</th>
-                                        <th>Type</th>
                                         <th>Description</th>
                                         <th>Status</th>
                                         <th>Options</th>
@@ -125,21 +113,6 @@
                                 <tr>
                                     <td>{{ $i++ }}</td>
                                     <td>{{ $item->category }}</td>
-                                    <td>
-                                        @if($item->type)
-                                            <span class="badge 
-                                                @if($item->type == 'Asset') bg-success 
-                                                @elseif($item->type == 'Accessory') bg-info 
-                                                @elseif($item->type == 'Component') bg-warning 
-                                                @elseif($item->type == 'Consumable') bg-danger 
-                                                @elseif($item->type == 'License') bg-secondary 
-                                                @else text-muted @endif">
-                                                {{ $item->type }}
-                                            </span>
-                                        @else
-                                            <span class="text-muted">Not specified</span>
-                                        @endif
-                                    </td>
                                     <td>{{ Str::limit($item->desc, 30) }}</td>
                                     <td><span class="badge {{ $item->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $item->status }}</span></td>
                                     <td>

@@ -125,8 +125,8 @@
                     <div class="collapse sidebar-collapse" id="settingsACollapse">
                         <ul class="sidebar-submenu">
                             <li class="sidebar-item">
-                                <a href="#" class="sidebar-link">
-                                    <i class="bi bi-bootstrap-fill"></i>
+                                <a href="{{ route('logs.activity') }}" class="sidebar-link {{ request()->routeIs('logs.activity') ? 'active' : '' }}">
+                                    <i class="bi bi-activity"></i>
                                     <span class="ms-2">Activity Logs</span>
                                 </a>
                             </li>

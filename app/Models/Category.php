@@ -15,8 +15,7 @@ class Category extends Model
         'category',
         'desc',
         'status',
-        'custom_fields',
-        'type'
+        'custom_fields'
     ];
     
     // Add a cast to handle the JSON

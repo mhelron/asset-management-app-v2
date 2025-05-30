@@ -2,6 +2,38 @@
 
 @section('content')
 
+<!-- Debug Information - Remove in production -->
+@if(config('app.debug'))
+<div class="container mb-4">
+    <div class="card bg-light">
+        <div class="card-header">Debug Information</div>
+        <div class="card-body">
+            <h6>Department Data:</h6>
+            <ul>
+                @foreach($departments as $dept)
+                <li>
+                    Department: {{ $dept->name }} (ID: {{ $dept->id }})<br>
+                    Location ID: {{ $dept->location_id ?? 'null' }}<br>
+                    Location Object: {{ $dept->location ? 'Yes - '.$dept->location->name : 'No' }}
+                </li>
+                @endforeach
+            </ul>
+            
+            <hr>
+            
+            <h6>Available Locations:</h6>
+            <ul>
+                @foreach(\App\Models\Location::all() as $loc)
+                <li>
+                    Location: {{ $loc->name }} (ID: {{ $loc->id }})
+                </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+@endif
+
 <style>
     .card {
         border: none;
@@ -94,10 +126,18 @@
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $department->name }}</td>
                                         <td>
-                                            @if($department->location_id && isset($department->location) && is_object($department->location))
-                                                {{ $department->location->name }}
-                                            @elseif(isset($department->location) && is_string($department->location))
-                                                {{ $department->location }}
+                                            @php
+                                                $locationName = null;
+                                                if ($department->location_id) {
+                                                    $locationObj = \App\Models\Location::find($department->location_id);
+                                                    if ($locationObj) {
+                                                        $locationName = $locationObj->name;
+                                                    }
+                                                }
+                                            @endphp
+                                            
+                                            @if($locationName)
+                                                {{ $locationName }}
                                             @else
                                                 <span class="text-muted">Not assigned</span>
                                             @endif

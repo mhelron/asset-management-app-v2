@@ -64,17 +64,6 @@
                                     @enderror
                                 </div>
                             </div>
-                            
-                            <!-- Old Location Field (Optional) -->
-                            <div class="col-md-12">
-                                <div class="form-group mb-3">
-                                    <label>Additional Location Details (Optional)</label>
-                                    <input type="text" name="location" value="{{ old('location') }}" class="form-control" placeholder="Enter additional location details">
-                                    @error('location')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-                            </div>
 
                             <!-- Description -->
                             <div class="col-md-12">

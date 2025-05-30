@@ -7,13 +7,14 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Helpers\ActivityLogger;
 
 class LoginController extends Controller
 {
 
     // Redirect to previous page if available, otherwise dashboard (Pag authenticated na si user at inaccess si login page, babalik sa previous page or dashboard)
     public function showLogin(Request $request) {
-        if (auth()->check()) {
+        if (Auth::check()) {
             $previousUrl = url()->previous();
     
             if ($previousUrl === route('login.form')) {
@@ -78,9 +79,11 @@ class LoginController extends Controller
                 'email' => Auth::user()->email,
                 'name' => $fullName,
                 'user_role' => Auth::user()->user_role,
+                'user_email' => Auth::user()->email, // Added for logging
             ]);
 
-
+            // Log successful login
+            ActivityLogger::logLogin($email);
 
             // Clear the stored intended URL so it won't redirect there
             session()->forget('url.intended');
@@ -95,6 +98,11 @@ class LoginController extends Controller
 
 
     public function logout(Request $request){
+            // Log user logout before the user is logged out
+            if (Auth::check()) {
+                ActivityLogger::logLogout();
+            }
+            
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

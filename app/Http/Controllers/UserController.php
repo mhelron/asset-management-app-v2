@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\ActivityLogger;
 
 class UserController extends Controller
 {
@@ -171,12 +172,8 @@ class UserController extends Controller
             'department_id' => $validatedData['department_id'],
         ]);
 
-        /* Log the activity
-        Log::info('Activity Log', [
-            'user' => auth()->user()->email ?? 'Guest',
-            'action' => 'Added a new user: ' . $validatedData['email'] . '.'
-        ]);
-        */
+        // Log activity
+        ActivityLogger::logCreated('User', $validatedData['email']);
 
         return redirect()->route('users.index')->with('success', 'User Added Successfully');
     }
@@ -211,10 +208,8 @@ class UserController extends Controller
             'password' => $request->filled('password') ? Hash::make($validatedData['password']) : $user->password,
         ]);
 
-        Log::info('Activity Log', [
-            'user' => Session::get('user_email'),
-            'action' => 'Updated user: ' . $validatedData['email']
-        ]);
+        // Log activity
+        ActivityLogger::logUpdated('User', $validatedData['email']);
 
         return redirect('users')->with('success', 'User Updated Successfully');
     }
@@ -227,7 +222,11 @@ class UserController extends Controller
             return back()->with('error', 'User not found');
         }
 
+        $email = $user->email;
         $user->delete();
+
+        // Log activity
+        ActivityLogger::logArchived('User', $email);
 
         return redirect()->route('users.index')->with('success', 'User archived successfully.');
     }
@@ -282,10 +281,8 @@ class UserController extends Controller
             $user->save();
         }
         
-        Log::info('Activity Log', [
-            'user' => Auth::user()->email,
-            'action' => 'Updated their profile'
-        ]);
+        // Log activity
+        ActivityLogger::log('Updated their profile');
         
         return redirect()->route('users.my-profile')->with('success', 'Profile updated successfully');
     }

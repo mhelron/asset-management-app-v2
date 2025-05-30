@@ -6,17 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\CustomField;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\ActivityLogger;
 
 class CategoryController extends Controller
 {
     public function index(Request $request)
     {
         $query = Category::query();
-
-        // Apply type filter if provided
-        if ($request->has('type') && !empty($request->type)) {
-            $query->where('type', $request->type);
-        }
 
         // Apply search filter if provided
         if ($request->has('search') && !empty($request->search)) {
@@ -25,10 +21,7 @@ class CategoryController extends Controller
 
         $categories = $query->get();
         
-        // Get a list of possible category types for the filter dropdown
-        $categoryTypes = ['Asset'];
-        
-        return view('categories.index', compact('categories', 'categoryTypes'));
+        return view('categories.index', compact('categories'));
     }
     
     public function create()
@@ -59,7 +52,6 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'category' => 'required|string|max:255',
             'desc' => 'required|string',
-            'type' => 'nullable|string|in:Asset'
         ]);
 
         // Prepare custom fields data
@@ -72,9 +64,11 @@ class CategoryController extends Controller
         $category = Category::create([
             'category' => $validated['category'],
             'desc' => $validated['desc'],
-            'type' => $validated['type'],
             'custom_fields' => $customFieldsJson
         ]);
+
+        // Log activity
+        ActivityLogger::logCreated('Category', $validated['category']);
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
@@ -102,7 +96,6 @@ class CategoryController extends Controller
             'category' => 'required',
             'desc' => 'required',
             'status' => 'required',
-            'type' => 'nullable|string|in:Asset'
         ]);
         
         // Prepare custom fields data
@@ -117,9 +110,12 @@ class CategoryController extends Controller
                 'category' => $validatedData['category'],
                 'desc' => $validatedData['desc'],
                 'status' => $validatedData['status'],
-                'type' => $validatedData['type'],
                 'custom_fields' => $customFieldsJson
             ]);
+
+            // Log activity
+            ActivityLogger::logUpdated('Category', $validatedData['category']);
+
             return redirect('categories')->with('success', 'Category Updated Successfully');
         }
         return redirect('categories')->with('error', 'Category Not Updated');
@@ -130,27 +126,15 @@ class CategoryController extends Controller
         $category = Category::find($id);
 
         if ($category) {
+            $categoryName = $category->category;
             $category->delete();
+            
+            // Log activity
+            ActivityLogger::logArchived('Category', $categoryName);
+            
             return redirect()->route('categories.index')->with('success', 'Category Archived Successfully');
         }
 
         return redirect()->route('categories.index')->with('error', 'Category Not Archived');
-    }
-    
-    /**
-     * Get categories by type
-     */
-    public function getCategoriesByType($type)
-    {
-        try {
-            $categories = Category::where('type', $type)
-                ->where('status', 'Active')
-                ->get();
-                
-            return response()->json($categories);
-        } catch (\Exception $e) {
-            Log::error('Error fetching categories by type: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
     }
 }

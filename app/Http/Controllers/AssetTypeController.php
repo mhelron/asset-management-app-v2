@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssetType;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class AssetTypeController extends Controller
 {
@@ -33,6 +34,9 @@ class AssetTypeController extends Controller
             'is_requestable' => $request->has('is_requestable') ? 1 : 0,
         ]);
 
+        // Log activity
+        ActivityLogger::logCreated('Asset Type', $validatedData['name']);
+
         return redirect('asset-types')->with('success', 'Asset Type Added Successfully');
     }
 
@@ -59,13 +63,20 @@ class AssetTypeController extends Controller
             'is_requestable' => $request->has('is_requestable') ? 1 : 0,
         ]);
 
+        // Log activity
+        ActivityLogger::logUpdated('Asset Type', $validatedData['name']);
+
         return redirect('asset-types')->with('success', 'Asset Type Updated Successfully');
     }
 
     public function archive($id)
     {
         $assetType = AssetType::findOrFail($id);
+        $typeName = $assetType->name;
         $assetType->delete(); // Soft delete (archives the asset type)
+
+        // Log activity
+        ActivityLogger::logArchived('Asset Type', $typeName);
 
         return redirect('asset-types')->with('success', 'Asset Type Archived Successfully');
     }
