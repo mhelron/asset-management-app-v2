@@ -14,14 +14,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
         // Seeder for roles
-            $this->call([
+        $this->call([
             RolesTableSeeder::class,
         ]);
 
         // Create a default admin user
-        User::create([
+        $admin = User::create([
             'first_name' => 'Admin',
             'last_name' => 'User',
             'email' => 'admin@test.com', // Using 'admin' as the email
@@ -29,6 +28,9 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('pass'), // Password is 'pass'
             'department_id' => null, // Set this if you have a department
         ]);
+        
+        // Assign admin role to the admin user
+        $admin->assignRole('Admin');
 
         // Call the UsersTableSeeder to add more users
         $this->call(UsersTableSeeder::class);

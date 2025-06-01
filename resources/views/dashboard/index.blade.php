@@ -30,6 +30,39 @@
         align-items: center;
         justify-content: center;
     }
+    .letter-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.6rem;
+        font-family: 'Arial', sans-serif;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover .letter-icon {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    @media (max-width: 1200px) {
+        .asset-type-card {
+            flex: 0 0 calc(33.333% - 20px);
+        }
+    }
+    @media (max-width: 992px) {
+        .asset-type-card {
+            flex: 0 0 calc(50% - 20px);
+        }
+    }
+    @media (max-width: 576px) {
+        .asset-type-card {
+            flex: 0 0 calc(100% - 20px);
+        }
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -46,7 +79,7 @@
 <!-- Main content -->
 <div class="content">
     <div class="container">
-        <!-- Statistics Cards -->
+        <!-- Primary Statistics Cards -->
         <div class="row mb-4">
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card shadow h-100">
@@ -56,23 +89,8 @@
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Total Items</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::count() }}</h2>
+                            <h2 class="mb-0 fw-bold">{{ $totalItems }}</h2>
                             <a href="{{ route('inventory.index') }}" class="text-primary small">View all Items →</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card shadow h-100">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="me-3 stat-card-icon bg-success bg-opacity-10">
-                            <i class="bi bi-box2-heart text-success" style="font-size: 2rem;"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1">Consumable Items</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::whereHas('assetType', function($q) { $q->where('has_quantity', 1); })->count() }}</h2>
-                            <a href="{{ route('inventory.index') }}" class="text-success small">View all items →</a>
                         </div>
                     </div>
                 </div>
@@ -86,7 +104,7 @@
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Total Users</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\User::count() }}</h2>
+                            <h2 class="mb-0 fw-bold">{{ $totalUsers }}</h2>
                             <a href="{{ route('users.index') }}" class="text-info small">View all users →</a>
                         </div>
                     </div>
@@ -101,11 +119,74 @@
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Unassigned Items</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::whereNull('users_id')->count() }}</h2>
+                            <h2 class="mb-0 fw-bold">{{ $unassignedItems }}</h2>
                             <a href="{{ route('inventory.index') }}" class="text-warning small">View unassigned →</a>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-3 stat-card-icon bg-success bg-opacity-10">
+                            <i class="bi bi-tags text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Asset Types</h6>
+                            <h2 class="mb-0 fw-bold">{{ $assetTypes->count() }}</h2>
+                            <a href="{{ route('asset-types.index') }}" class="text-success small">Manage types →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Asset Type Statistics Cards -->
+        <div class="mb-4">
+            <h5 class="mb-3 fw-bold">Asset Type Statistics</h5>
+            <div class="row">
+                @php
+                    // Define a list of colors to use for the cards
+                    $colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+                @endphp
+                
+                @foreach($assetTypeStats as $index => $type)
+                    @php
+                        $colorIndex = $index % count($colors);
+                        $color = $colors[$colorIndex];
+                        
+                        // Get the first letter of the type name for the icon
+                        $firstLetter = strtoupper(substr($type->name, 0, 1));
+                        
+                        // For types with quantity tracking, count the total quantity
+                        $totalQuantity = 0;
+                        if ($type->has_quantity) {
+                            $totalQuantity = \App\Models\Inventory::where('asset_type_id', $type->id)
+                                ->sum('quantity');
+                        }
+                    @endphp
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3 letter-icon bg-{{ $color }} bg-opacity-10 text-{{ $color }}">
+                                    {{ $firstLetter }}
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">{{ $type->name }}</h6>
+                                    <h2 class="mb-0 fw-bold">
+                                        {{ $type->inventories_count }}
+                                        @if($type->has_quantity && $totalQuantity > 0)
+                                            <small class="fs-6 text-muted">({{ $totalQuantity }} units)</small>
+                                        @endif
+                                    </h2>
+                                    <a href="{{ route('inventory.index') }}?type={{ $type->id }}" class="text-{{ $color }} small">View items →</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
 
@@ -198,18 +279,18 @@
                                     <tr>
                                         <th>Asset Name</th>
                                         <th>Category</th>
-                                        <th>Tag</th>
+                                        <th>Type</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse(\App\Models\Inventory::with('category')->latest()->take(5)->get() as $asset)
+                                    @forelse($recentAssets as $asset)
                                     <tr>
                                         <td>
                                             <a href="{{ route('inventory.show', $asset->id) }}" class="text-decoration-none">{{ $asset->item_name }}</a>
                                         </td>
                                         <td>{{ $asset->category->category ?? 'N/A' }}</td>
-                                        <td><span class="badge bg-secondary">{{ $asset->asset_tag }}</span></td>
+                                        <td>{{ $asset->assetType->name ?? 'N/A' }}</td>
                                         <td>
                                             <span class="badge bg-{{ $asset->status == 'Active' ? 'success' : 'warning' }}">
                                                 {{ $asset->status }}
@@ -255,10 +336,18 @@ document.addEventListener('DOMContentLoaded', function() {
     var categoryChart = new Chart(categoryCtx, {
         type: 'bar',
         data: {
-            labels: ['Laptops', 'Desktops', 'Monitors', 'Printers', 'Phones', 'Other'],
+            labels: [
+                @foreach($categoryData as $category)
+                    '{{ $category->category }}',
+                @endforeach
+            ],
             datasets: [{
                 label: 'Number of Assets',
-                data: [12, 19, 8, 5, 10, 3],
+                data: [
+                    @foreach($categoryData as $category)
+                        {{ $category->inventories_count }},
+                    @endforeach
+                ],
                 backgroundColor: [
                     'rgba(54, 162, 235, 0.7)',
                     'rgba(255, 99, 132, 0.7)',
@@ -308,9 +397,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var deptChart = new Chart(deptCtx, {
         type: 'doughnut',
         data: {
-            labels: ['IT', 'HR', 'Finance', 'Marketing', 'Operations'],
+            labels: [
+                @foreach($departmentData as $dept)
+                    '{{ $dept->name }}',
+                @endforeach
+            ],
             datasets: [{
-                data: [30, 20, 15, 10, 25],
+                data: [
+                    @foreach($departmentData as $dept)
+                        {{ $dept->inventories_count }},
+                    @endforeach
+                ],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.7)',
                     'rgba(54, 162, 235, 0.7)',

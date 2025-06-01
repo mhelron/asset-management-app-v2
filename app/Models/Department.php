@@ -44,4 +44,12 @@ class Department extends Model
             'id'           // Primary key on locations table
         );
     }
+    
+    /**
+     * Get inventory items assigned to this department
+     */
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class, 'department_id');
+    }
 }

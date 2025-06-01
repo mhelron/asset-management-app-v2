@@ -36,6 +36,11 @@ class NotificationController extends Controller
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
         
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Notification marked as read']);
+        }
+        
         return redirect()->back()->with('success', 'Notification marked as read.');
     }
     
@@ -47,6 +52,11 @@ class NotificationController extends Controller
     public function markAllAsRead()
     {
         Auth::user()->unreadNotifications->markAsRead();
+        
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'All notifications marked as read']);
+        }
         
         return redirect()->back()->with('success', 'All notifications marked as read.');
     }
@@ -61,14 +71,16 @@ class NotificationController extends Controller
     {
         // Get all inventory items with quantity less than or equal to min_quantity
         // and that have not been notified about yet
-        $lowInventoryItems = Inventory::where('quantity', '<=', 'min_quantity')
+        $lowInventoryItems = Inventory::whereRaw('quantity <= min_quantity')
             ->where('low_quantity_notified', false)
             ->where('min_quantity', '>', 0)
             ->get();
         
         if ($lowInventoryItems->count() > 0) {
             // Get all admin and manager users
-            $adminUsers = User::role(['admin', 'manager'])->get();
+            $adminUsers = User::whereHas('roles', function($q) {
+                $q->whereIn('name', ['Admin', 'admin', 'Manager', 'manager']);
+            })->get();
             
             foreach ($lowInventoryItems as $item) {
                 // Send notification to each admin user
@@ -93,7 +105,9 @@ class NotificationController extends Controller
     public function processAssetRequest(AssetRequest $assetRequest)
     {
         // Get all admin and manager users
-        $adminUsers = User::role(['admin', 'manager'])->get();
+        $adminUsers = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['Admin', 'admin', 'Manager', 'manager']);
+        })->get();
         
         // Send notification to each admin user
         foreach ($adminUsers as $admin) {
@@ -101,5 +115,53 @@ class NotificationController extends Controller
         }
         
         return response()->json(['message' => 'Asset request notifications sent.']);
+    }
+    
+    /**
+     * Get latest notifications for the authenticated user.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getLatestNotifications()
+    {
+        $user = Auth::user();
+        $notifications = $user->notifications->take(5);
+        $unreadCount = $user->unreadNotifications->count();
+        
+        $formattedNotifications = $notifications->map(function($notification) {
+            $route = isset($notification->data['request_id']) 
+                ? route('asset-requests.show', $notification->data['request_id']) 
+                : (isset($notification->data['inventory_id']) 
+                    ? route('inventory.show', $notification->data['inventory_id']) 
+                    : route('notifications.index'));
+                    
+            $iconClass = 'bi-bell-fill';
+            $bgClass = 'bg-primary';
+            
+            if(isset($notification->data['message'])) {
+                if(str_contains($notification->data['message'], 'Low quantity')) {
+                    $iconClass = 'bi-exclamation-triangle-fill';
+                    $bgClass = 'bg-warning';
+                } elseif(str_contains($notification->data['message'], 'request')) {
+                    $iconClass = 'bi-box-seam-fill';
+                    $bgClass = 'bg-info';
+                }
+            }
+            
+            return [
+                'id' => $notification->id,
+                'message' => $notification->data['message'] ?? 'New notification',
+                'time' => $notification->created_at->diffForHumans(),
+                'read' => !is_null($notification->read_at),
+                'route' => $route,
+                'iconClass' => $iconClass,
+                'bgClass' => $bgClass
+            ];
+        });
+        
+        return response()->json([
+            'notifications' => $formattedNotifications,
+            'unreadCount' => $unreadCount
+        ]);
     }
 } 

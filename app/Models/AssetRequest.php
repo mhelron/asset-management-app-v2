@@ -15,28 +15,69 @@ class AssetRequest extends Model
         'reason',
         'date_needed',
         'status',
-        'admin_note',
-        'approved_by',
-        'approved_at'
+        'status_note',
+        'processed_by',
+        'processed_at',
     ];
 
     protected $casts = [
-        'date_needed' => 'date',
-        'approved_at' => 'datetime'
+        'date_needed' => 'datetime',
+        'processed_at' => 'datetime',
     ];
 
+    /**
+     * Get the inventory item associated with this request.
+     */
     public function inventory()
     {
         return $this->belongsTo(Inventory::class);
     }
 
+    /**
+     * Get the user who made this request.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function approver()
+    /**
+     * Get the user who processed this request.
+     */
+    public function processor()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    /**
+     * Scope a query to only include pending requests.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'Pending');
+    }
+
+    /**
+     * Scope a query to only include approved requests.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'Approved');
+    }
+
+    /**
+     * Scope a query to only include rejected requests.
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'Rejected');
+    }
+
+    /**
+     * Scope a query to only include completed requests.
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'Completed');
     }
 }

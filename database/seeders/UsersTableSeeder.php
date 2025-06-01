@@ -15,36 +15,36 @@ class UsersTableSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => "Ma'am Kimberly", 'department' => 'Accounting'],
-            ['name' => "Ma'am Dean Jacinto", 'department' => 'Accounting'],
-            ['name' => "Sir Clark", 'department' => 'Accounting'],
-            ['name' => "Ma'am Bridget F. Supang", 'department' => 'Accounting'],
-            ['name' => "Sir Mark Peralta", 'department' => 'Accounting'],
-            ['name' => "Ma'am Ma Rosario Dela Cruz", 'department' => 'Accounting'],
-            ['name' => "Amanda Nerja", 'department' => 'Accounting'],
-            ['name' => "Ma'am Rachel", 'department' => 'Accounting'],
-            ['name' => "Ma'am Joy", 'department' => 'Executive Office'],
-            ['name' => "Ma'am Jonna Abilar", 'department' => 'Human Resource'],
-            ['name' => "Ma'am Fe Adrianne Conte", 'department' => 'Human Resource'],
-            ['name' => "Ma'am Faith Labiang", 'department' => 'Human Resource'],
-            ['name' => "Ma'am Arlita Samoy", 'department' => 'Human Resource'],
-            ['name' => "Sir Ray", 'department' => 'Maintenance'],
-            ['name' => "Sir CJ Bathan", 'department' => 'Maintenance'],
-            ['name' => "Ma'am Andrea", 'department' => 'Production Warehouse'],
-            ['name' => "Ma'am Jessi", 'department' => 'Production Warehouse'],
-            ['name' => "Ma'am Danica Reyes", 'department' => 'Production Warehouse'],
-            ['name' => "Ma'am Jessica Collado", 'department' => 'Purchasing'],
-            ['name' => "Ma'am Gracelle Razon", 'department' => 'Purchasing'],
-            ['name' => "Ma'am Kerstine Taduran", 'department' => 'Purchasing'],
-            ['name' => "Sir Dave Iringco", 'department' => 'Purchasing'],
-            ['name' => "Ma'am Sharmaine", 'department' => 'Purchasing'],
-            ['name' => "Ma'am Janers Zuniega", 'department' => 'Quality Assurance'],
-            ['name' => "Ma'am Vernette Rosacay", 'department' => 'Quality Assurance'],
-            ['name' => "Ma'am Mara", 'department' => 'Research and Development'],
-            ['name' => "Ma'am Zar", 'department' => 'Research and Development'],
-            ['name' => "Ma'am Diana Fabros", 'department' => 'Research and Development'],
-            ['name' => "Sir Bernard", 'department' => 'Sales And Marketing'],
-            ['name' => "Ma'am Roz", 'department' => 'Sales And Marketing'],
+            ['name' => "Ma'am Kimberly", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Ma'am Dean Jacinto", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Sir Clark", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Ma'am Bridget F. Supang", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Sir Mark Peralta", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Ma'am Ma Rosario Dela Cruz", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Amanda Nerja", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Ma'am Rachel", 'department' => 'Accounting', 'role' => 'Staff'],
+            ['name' => "Ma'am Joy", 'department' => 'Executive Office', 'role' => 'Manager'],
+            ['name' => "Ma'am Jonna Abilar", 'department' => 'Human Resource', 'role' => 'Manager'],
+            ['name' => "Ma'am Fe Adrianne Conte", 'department' => 'Human Resource', 'role' => 'Staff'],
+            ['name' => "Ma'am Faith Labiang", 'department' => 'Human Resource', 'role' => 'Staff'],
+            ['name' => "Ma'am Arlita Samoy", 'department' => 'Human Resource', 'role' => 'Staff'],
+            ['name' => "Sir Ray", 'department' => 'Maintenance', 'role' => 'Manager'],
+            ['name' => "Sir CJ Bathan", 'department' => 'Maintenance', 'role' => 'Staff'],
+            ['name' => "Ma'am Andrea", 'department' => 'Production Warehouse', 'role' => 'Manager'],
+            ['name' => "Ma'am Jessi", 'department' => 'Production Warehouse', 'role' => 'Staff'],
+            ['name' => "Ma'am Danica Reyes", 'department' => 'Production Warehouse', 'role' => 'Staff'],
+            ['name' => "Ma'am Jessica Collado", 'department' => 'Purchasing', 'role' => 'Manager'],
+            ['name' => "Ma'am Gracelle Razon", 'department' => 'Purchasing', 'role' => 'Staff'],
+            ['name' => "Ma'am Kerstine Taduran", 'department' => 'Purchasing', 'role' => 'Staff'],
+            ['name' => "Sir Dave Iringco", 'department' => 'Purchasing', 'role' => 'Staff'],
+            ['name' => "Ma'am Sharmaine", 'department' => 'Purchasing', 'role' => 'Staff'],
+            ['name' => "Ma'am Janers Zuniega", 'department' => 'Quality Assurance', 'role' => 'Manager'],
+            ['name' => "Ma'am Vernette Rosacay", 'department' => 'Quality Assurance', 'role' => 'Staff'],
+            ['name' => "Ma'am Mara", 'department' => 'Research and Development', 'role' => 'Manager'],
+            ['name' => "Ma'am Zar", 'department' => 'Research and Development', 'role' => 'Staff'],
+            ['name' => "Ma'am Diana Fabros", 'department' => 'Research and Development', 'role' => 'Staff'],
+            ['name' => "Sir Bernard", 'department' => 'Sales And Marketing', 'role' => 'Manager'],
+            ['name' => "Ma'am Roz", 'department' => 'Sales And Marketing', 'role' => 'Staff'],
         ];
 
         $counter = 1;
@@ -52,14 +52,17 @@ class UsersTableSeeder extends Seeder
         foreach ($users as $userData) {
             $department = Department::firstOrCreate(['name' => $userData['department']]);
 
-            User::create([
+            $user = User::create([
                 'first_name' => $userData['name'],
                 'last_name' => 'Ewan',
                 'email' => "example{$counter}@email.com",
-                'user_role' => 'staff',
+                'user_role' => strtolower($userData['role']),
                 'password' => Hash::make('password123'),
                 'department_id' => $department->id,
             ]);
+            
+            // Assign the appropriate role using Spatie Permissions
+            $user->assignRole($userData['role']);
 
             $counter++;
         }

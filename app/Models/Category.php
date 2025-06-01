@@ -30,4 +30,12 @@ class Category extends Model
     {
          return $this->hasMany(CustomField::class);
     }
+    
+    /**
+     * Get inventory items in this category
+     */
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class, 'category_id');
+    }
 }

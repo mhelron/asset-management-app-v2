@@ -53,21 +53,21 @@ class CheckLowQuantityItems extends Command
         
         // If there are low quantity items, send notifications
         if ($lowQuantityItems->count() > 0) {
-            // Get admin users to notify
-            $admins = User::whereHas('role', function($query) {
-                $query->where('name', 'Admin');
+            // Get admin and manager users to notify
+            $admins = User::whereHas('roles', function($q) {
+                $q->whereIn('name', ['Admin', 'admin', 'Manager', 'manager']);
             })->get();
             
             if ($admins->isEmpty()) {
-                $this->warn('No admin users found to notify');
-                Log::warning('No admin users found to notify about low quantity items');
+                $this->warn('No admin or manager users found to notify');
+                Log::warning('No admin or manager users found to notify about low quantity items');
                 return 1;
             }
             
             foreach ($lowQuantityItems as $item) {
                 $this->info('Sending notification for ' . $item->item_name . ' (Quantity: ' . $item->quantity . ')');
                 
-                // Send notification to all admins
+                // Send notification to all admins and managers
                 foreach ($admins as $admin) {
                     $admin->notify(new LowQuantityNotification($item));
                 }

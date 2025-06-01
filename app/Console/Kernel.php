@@ -14,6 +14,10 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\CheckLowQuantityItems::class,
+        Commands\SyncUserRoles::class,
+        Commands\TestNotification::class,
+        Commands\TestLowQuantityNotification::class,
+        Commands\CreateTestInventory::class,
     ];
 
     /**

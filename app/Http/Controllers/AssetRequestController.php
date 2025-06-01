@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\AssetRequest;
 use App\Models\Inventory;
 use App\Models\User;
@@ -62,16 +63,46 @@ class AssetRequestController extends Controller
             'status' => 'Pending',
         ]);
         
+        // Debug logging
+        Log::info('Asset request created', ['request_id' => $assetRequest->id]);
+        
         // Send notifications to admins and managers
-        $adminUsers = User::role(['admin', 'manager'])->get();
+        // Using lowercase role names to match what might be in the database
+        $adminUsers = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['Admin', 'admin', 'Manager', 'manager']);
+        })->get();
+        
+        // Debug logging
+        Log::info('Found admin users', [
+            'count' => $adminUsers->count(),
+            'emails' => $adminUsers->pluck('email')->toArray()
+        ]);
+        
         foreach ($adminUsers as $admin) {
-            $admin->notify(new ItemRequestNotification($assetRequest));
+            try {
+                Log::info('Sending notification to user', [
+                    'admin_id' => $admin->id,
+                    'admin_email' => $admin->email,
+                    'admin_role' => $admin->user_role,
+                    'admin_roles' => $admin->getRoleNames()->toArray()
+                ]);
+                
+                $admin->notify(new ItemRequestNotification($assetRequest));
+                
+                Log::info('Notification sent successfully');
+            } catch (\Exception $e) {
+                Log::error('Failed to send notification', [
+                    'admin_id' => $admin->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         }
         
         // Log activity
         ActivityLogger::log('Requested asset', $assetRequest->inventory->item_name);
         
-        return redirect()->route('asset-requests.index')
+        return redirect()->route('asset-requests.my-requests')
             ->with('success', 'Asset request submitted successfully.');
     }
     

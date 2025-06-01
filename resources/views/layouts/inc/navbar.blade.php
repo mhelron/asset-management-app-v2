@@ -7,6 +7,72 @@
             <a class="navbar-brand" href="{{ route('dashboard.index') }}">Asset Inventory Management</a>
         </div>
         <div class="d-flex align-items-center">
+            @auth
+            <div class="dropdown me-3">
+                <a href="#" class="position-relative text-white" role="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                    @if(auth()->user()->unreadNotifications->count() > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ auth()->user()->unreadNotifications->count() > 99 ? '99+' : auth()->user()->unreadNotifications->count() }}
+                            <span class="visually-hidden">unread notifications</span>
+                        </span>
+                    @endif
+                </a>
+                <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <h6 class="dropdown-header m-0 p-0 fw-bold">Notifications</h6>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <form action="{{ route('notifications.mark-all-read') }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm text-primary p-0 border-0 bg-transparent">Mark all as read</button>
+                            </form>
+                        @endif
+                    </div>
+                    
+                    <div class="notifications-container">
+                        @forelse(auth()->user()->notifications->take(5) as $notification)
+                            <a href="{{ isset($notification->data['request_id']) 
+                                ? route('asset-requests.show', $notification->data['request_id']) 
+                                : (isset($notification->data['inventory_id']) 
+                                    ? route('inventory.show', $notification->data['inventory_id']) 
+                                    : route('notifications.index')) }}" 
+                               class="dropdown-item d-flex border-bottom py-2 {{ $notification->read_at ? '' : 'unread' }}"
+                               data-notification-id="{{ $notification->id }}">
+                                <div class="me-3">
+                                    @if(isset($notification->data['message']) && str_contains($notification->data['message'], 'Low quantity'))
+                                        <div class="bg-warning text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                        </div>
+                                    @elseif(isset($notification->data['message']) && str_contains($notification->data['message'], 'request'))
+                                        <div class="bg-info text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-box-seam-fill"></i>
+                                        </div>
+                                    @else
+                                        <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-bell-fill"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-0 {{ $notification->read_at ? 'text-muted' : 'fw-bold' }} text-truncate" style="max-width: 220px;">
+                                        {{ $notification->data['message'] ?? 'New notification' }}
+                                    </p>
+                                    <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="dropdown-item text-center py-3">
+                                <span class="text-muted">No notifications</span>
+                            </div>
+                        @endforelse
+                    </div>
+                    
+                    <div class="text-center py-2 border-top">
+                        <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-link text-decoration-none">View all notifications</a>
+                    </div>
+                </div>
+            </div>
+            @endauth
             <div class="text-light me-2 text-end">
                 <div class="fw-bold" style="font-size: 0.8em;">{{ session('name') }}</div>
                 <div style="font-size: 0.8em;">{{ session('user_role') }}</div>
@@ -46,11 +112,37 @@
                 </li>
 
                 <li class="sidebar-item">
+                    <a href="{{ route('notifications.index') }}" class="sidebar-link {{ request()->routeIs('notifications.index') ? 'active' : '' }}">
+                        <i class="bi bi-bell"></i>
+                        <span class="ms-2">Notifications</span>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ auth()->user()->unreadNotifications->count() }}</span>
+                        @endif
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
                     <a href="{{ route('inventory.index') }}" class="sidebar-link {{ request()->routeIs('inventory.index', 'inventory.create', 'inventory.edit', 'inventory.show') ? 'active' : '' }}">
                         <i class="bi bi-box-seam"></i>
                         <span class="ms-2">Inventory</span>
                     </a>
                 </li>
+
+                @if(in_array($role, ['admin', 'manager']))
+                <li class="sidebar-item">
+                    <a href="{{ route('asset-requests.index') }}" class="sidebar-link {{ request()->routeIs('asset-requests.index', 'asset-requests.show') ? 'active' : '' }}">
+                        <i class="bi bi-inbox"></i>
+                        <span class="ms-2">Asset Requests</span>
+                    </a>
+                </li>
+                @else
+                <li class="sidebar-item">
+                    <a href="{{ route('asset-requests.my-requests') }}" class="sidebar-link {{ request()->routeIs('asset-requests.my-requests') ? 'active' : '' }}">
+                        <i class="bi bi-inbox"></i>
+                        <span class="ms-2">My Requests</span>
+                    </a>
+                </li>
+                @endif
             @endif
 
             <!-- Settings: Admin only -->

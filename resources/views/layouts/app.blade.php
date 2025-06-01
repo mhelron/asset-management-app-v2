@@ -3,6 +3,7 @@
 <head>
 	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Asset Management System</title>
 
@@ -26,6 +27,54 @@
 
     .btn-close {
         font-size: 20px;
+    }
+    
+    /* Notification Dropdown Styles */
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .notifications-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .notifications-container::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .notifications-container::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 5px;
+    }
+    
+    .dropdown-item.unread {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .dropdown-item:active {
+        background-color: #212529 !important;
+        color: white !important;
+    }
+    
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Notification animation */
+    @keyframes notification-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .notification-badge-new {
+        animation: notification-pulse 1s infinite;
     }
     
     /* Responsive fixes */
@@ -117,6 +166,123 @@
             });
         </script>
     @endif
+
+    <!-- Notification Dropdown Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Update notifications function
+            const updateNotifications = function() {
+                fetch('/notifications/get-latest', {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Get elements
+                    const bell = document.querySelector('#notificationDropdown');
+                    const notificationContainer = document.querySelector('.notifications-container');
+                    const unreadCount = data.unreadCount;
+                    let notificationBadge = document.querySelector('#notificationDropdown .badge');
+                    
+                    // Update the badge count
+                    if (unreadCount > 0) {
+                        if (!notificationBadge) {
+                            // Create badge if it doesn't exist
+                            const badge = document.createElement('span');
+                            badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                            badge.innerHTML = unreadCount > 99 ? '99+' : unreadCount;
+                            badge.innerHTML += '<span class="visually-hidden">unread notifications</span>';
+                            bell.appendChild(badge);
+                        } else {
+                            // Update existing badge
+                            notificationBadge.innerHTML = unreadCount > 99 ? '99+' : unreadCount;
+                            notificationBadge.innerHTML += '<span class="visually-hidden">unread notifications</span>';
+                        }
+                        
+                        // Also update sidebar badge if it exists
+                        const sidebarBadge = document.querySelector('.sidebar-link .badge');
+                        if (sidebarBadge) {
+                            sidebarBadge.textContent = unreadCount;
+                        }
+                    } else if (notificationBadge) {
+                        // Remove badge if no unread notifications
+                        notificationBadge.remove();
+                    }
+                    
+                    // Update notification container if it exists
+                    if (notificationContainer && data.notifications.length > 0) {
+                        let notificationsHtml = '';
+                        
+                        data.notifications.forEach(notification => {
+                            notificationsHtml += `
+                                <a href="${notification.route}" 
+                                   class="dropdown-item d-flex border-bottom py-2 ${notification.read ? '' : 'unread'}"
+                                   data-notification-id="${notification.id}">
+                                    <div class="me-3">
+                                        <div class="${notification.bgClass} text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi ${notification.iconClass}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 ${notification.read ? 'text-muted' : 'fw-bold'} text-truncate" style="max-width: 220px;">
+                                            ${notification.message}
+                                        </p>
+                                        <small class="text-muted">${notification.time}</small>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        
+                        notificationContainer.innerHTML = notificationsHtml;
+                    } else if (notificationContainer) {
+                        // Show "No notifications" message
+                        notificationContainer.innerHTML = `
+                            <div class="dropdown-item text-center py-3">
+                                <span class="text-muted">No notifications</span>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notifications:', error);
+                });
+            };
+            
+            // Initialize dropdown
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
+            // Handle notification clicks
+            document.addEventListener('click', function(event) {
+                const target = event.target.closest('.notifications-container .dropdown-item');
+                if (target) {
+                    const notificationId = target.getAttribute('data-notification-id');
+                    if (notificationId) {
+                        fetch(`/notifications/mark-read/${notificationId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({})
+                        });
+                    }
+                }
+            });
+            
+            // Initial update
+            updateNotifications();
+            
+            // Set interval to refresh notifications every 15 seconds
+            setInterval(updateNotifications, 15000);
+        });
+    </script>
 
     <!-- Navbar Script -->
     @vite('resources/js/navbar.js')

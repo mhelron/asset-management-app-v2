@@ -14,6 +14,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ItemDistributionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AssetRequestController;
+use Illuminate\Support\Facades\Auth;
 
 
 //Logout Route
@@ -144,6 +145,7 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::post('/mark-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         Route::get('/check-low-inventory', [NotificationController::class, 'checkLowInventory'])->name('notifications.check-low-inventory');
+        Route::get('/get-latest', [NotificationController::class, 'getLatestNotifications'])->name('notifications.get-latest');
     });
 
     // Asset Requests
@@ -155,4 +157,28 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::post('/update-status/{id}', [AssetRequestController::class, 'updateStatus'])->name('asset-requests.update-status');
         Route::get('/my-requests', [AssetRequestController::class, 'myRequests'])->name('asset-requests.my-requests');
     });
+
+    // Test route for notifications (only in non-production)
+    if (app()->environment() !== 'production') {
+        Route::get('/test-notification', function() {
+            $user = Auth::user();
+            // Create a notification with unique message to ensure it's new
+            $timestamp = now()->format('H:i:s');
+            
+            // Find first inventory item
+            $inventory = \App\Models\Inventory::first();
+            if ($inventory) {
+                $user->notify(new \App\Notifications\LowQuantityNotification($inventory));
+                return response()->json([
+                    'success' => true, 
+                    'message' => "Test notification sent at {$timestamp}"
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'No inventory items found to create notification'
+            ], 404);
+        })->name('test.notification');
+    }
 });

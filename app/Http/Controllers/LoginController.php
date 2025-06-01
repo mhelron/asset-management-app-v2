@@ -71,9 +71,14 @@ class LoginController extends Controller
             $request->session()->regenerate();
             session(['email' => Auth::user()->email]);
 
-
             // Set session variables for displaying user information
             $fullName = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+
+            // Make sure user has the correct role assigned
+            $user = Auth::user();
+            if (!$user->hasRole(ucfirst($user->user_role))) {
+                $user->syncRoles([ucfirst($user->user_role)]);
+            }
 
             session([
                 'email' => Auth::user()->email,
