@@ -206,8 +206,8 @@
                                                     <i class="bi bi-box-seam me-2"></i>
                                                 @elseif($applies == 'Category')
                                                     <i class="bi bi-bookmark me-2"></i>
-                                                @elseif($applies == 'Component')
-                                                    <i class="bi bi-cpu me-2"></i>
+                                                @elseif($applies == 'Consumable')
+                                                    <i class="bi bi-box2-heart me-2"></i>
                                                 @elseif($applies == 'Accessory')
                                                     <i class="bi bi-headphones me-2"></i>
                                                 @else

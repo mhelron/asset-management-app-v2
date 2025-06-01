@@ -18,6 +18,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\AssetTransfer;
 use App\Models\AssetRequest;
 use App\Helpers\ActivityLogger;
+use Illuminate\Support\Str;
 
 class InventoryController extends Controller
 {
@@ -315,6 +316,15 @@ class InventoryController extends Controller
         return view('inventory.create', compact('categories', 'departments', 'users', 'assetTag', 'assetCustomFields', 'assetTypes', 'locations'));
     }
 
+    // Validation rules for inventory items with quantity tracking
+    private function getQuantityValidationRules()
+    {
+        return [
+            'max_quantity' => 'required|integer|min:0',
+            'min_quantity' => 'required|integer|min:0',
+        ];
+    }
+
     public function store(Request $request)
     {
         // Log the request data for debugging
@@ -345,6 +355,12 @@ class InventoryController extends Controller
                 'asset_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'log_note' => 'nullable|string'
             ];
+            
+            // Check if the selected asset type has quantity tracking
+            $assetType = AssetType::find($request->asset_type_id);
+            if ($assetType && $assetType->has_quantity) {
+                $standardRules = array_merge($standardRules, $this->getQuantityValidationRules());
+            }
 
             // Get custom fields that apply to Asset
             $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -462,8 +478,8 @@ class InventoryController extends Controller
             // Prepare custom fields
             $customFields = $request->has('custom_fields') ? $request->input('custom_fields') : [];
             
-            // Create new inventory item
-            $inventory = Inventory::create([
+            // Prepare inventory data
+            $inventoryData = [
                 'item_name' => $request->item_name,
                 'category_id' => $request->category_id,
                 'asset_type_id' => $request->asset_type_id,
@@ -479,7 +495,18 @@ class InventoryController extends Controller
                 'image_path' => $imagePath,
                 'log_note' => $request->log_note,
                 'custom_fields' => $customFields
-            ]);
+            ];
+            
+            // Add quantity fields if asset type has quantity tracking
+            if ($assetType && $assetType->has_quantity) {
+                $inventoryData['max_quantity'] = $request->max_quantity;
+                $inventoryData['min_quantity'] = $request->min_quantity;
+                $inventoryData['quantity'] = $request->max_quantity; // Initial quantity equals max_quantity
+                $inventoryData['low_quantity_notified'] = false;
+            }
+            
+            // Create new inventory item
+            $inventory = Inventory::create($inventoryData);
 
             // Log activity
             ActivityLogger::logCreated('Inventory Item', $request->item_name);
@@ -573,6 +600,12 @@ class InventoryController extends Controller
                 'asset_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'log_note' => 'nullable|string'
             ];
+            
+            // Check if the selected asset type has quantity tracking
+            $assetType = AssetType::find($request->asset_type_id);
+            if ($assetType && $assetType->has_quantity) {
+                $standardRules = array_merge($standardRules, $this->getQuantityValidationRules());
+            }
     
             // Get custom fields that apply to Asset
             $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -711,6 +744,25 @@ class InventoryController extends Controller
                 'custom_fields' => $customFields
             ];
             
+            // Add quantity fields if asset type has quantity tracking
+            if ($assetType && $assetType->has_quantity) {
+                $updateData['max_quantity'] = $request->max_quantity;
+                $updateData['min_quantity'] = $request->min_quantity;
+                $updateData['quantity'] = $request->max_quantity; // Set quantity equal to max_quantity
+                
+                // Check if quantity has changed and is now below minimum
+                if (($request->max_quantity <= $request->min_quantity) && 
+                    ($inventoryItem->max_quantity > $inventoryItem->min_quantity || $inventoryItem->max_quantity === null)) {
+                    $updateData['low_quantity_notified'] = false; // Reset notification flag when quantity changes
+                }
+            } else {
+                // If asset type doesn't have quantity tracking, set fields to null
+                $updateData['quantity'] = null;
+                $updateData['max_quantity'] = null;
+                $updateData['min_quantity'] = null;
+                $updateData['low_quantity_notified'] = false;
+            }
+            
             Log::info('Update data array:', $updateData);
             
             // Update inventory item
@@ -773,7 +825,16 @@ class InventoryController extends Controller
     public function show($id)
     {
         try {
-            $inventoryItem = Inventory::with(['category', 'department', 'user', 'notes.user', 'assetType', 'location'])->findOrFail($id);
+            $inventoryItem = Inventory::with([
+                'category', 
+                'department', 
+                'user', 
+                'notes.user', 
+                'assetType', 
+                'location', 
+                'distributions.user', 
+                'distributions.assigner'
+            ])->findOrFail($id);
             
             // Get custom fields for the Asset type
             $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
@@ -825,7 +886,10 @@ class InventoryController extends Controller
                 $qrCode = QrCode::size(200)->generate($qrContent);
             }
             
-            return view('inventory.show', compact('inventoryItem', 'allCustomFields', 'assetNotes', 'qrCode'));
+            // Get all users for distribution modal
+            $users = User::where('id', '!=', Auth::id())->get();
+            
+            return view('inventory.show', compact('inventoryItem', 'allCustomFields', 'assetNotes', 'qrCode', 'users'));
             
         } catch (\Exception $e) {
             Log::error('Error showing inventory details: ' . $e->getMessage());
@@ -1090,6 +1154,73 @@ class InventoryController extends Controller
             Log::error('Error requesting asset: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to request asset. Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Add stock to an inventory item
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function addStock(Request $request, $id)
+    {
+        try {
+            $inventoryItem = Inventory::findOrFail($id);
+            
+            // Check if the item has quantity tracking
+            if (!$inventoryItem->has_quantity) {
+                return redirect()->back()
+                    ->with('error', 'This item does not support quantity tracking.');
+            }
+            
+            // Validate the request
+            $request->validate([
+                'add_quantity' => 'required|integer|min:1',
+                'stock_note' => 'nullable|string',
+            ]);
+            
+            $currentQuantity = $inventoryItem->quantity;
+            $maxQuantity = $inventoryItem->max_quantity;
+            $addedQuantity = $request->add_quantity;
+            $newQuantity = $currentQuantity + $addedQuantity;
+            
+            // Check if adding stock would exceed the maximum quantity
+            if ($newQuantity > $maxQuantity) {
+                $availableSpace = $maxQuantity - $currentQuantity;
+                return redirect()->back()
+                    ->with('error', "Cannot add {$addedQuantity} units. It would exceed the maximum quantity of {$maxQuantity}. Available space: {$availableSpace} units.");
+            }
+            
+            // Update the inventory item with the new quantity
+            $inventoryItem->update([
+                'quantity' => $newQuantity,
+            ]);
+            
+            // Create a note about this stock addition
+            $note = "Added {$addedQuantity} units to stock. ";
+            if ($request->stock_note) {
+                $note .= "Note: {$request->stock_note}";
+            }
+            
+            $assetNote = new AssetNote([
+                'content' => $note,
+                'user_id' => Auth::id(),
+            ]);
+            
+            $inventoryItem->notes()->save($assetNote);
+            
+            // Log activity
+            ActivityLogger::log("Added {$addedQuantity} units to inventory", $inventoryItem->item_name);
+            
+            return redirect()->back()
+                ->with('success', "{$addedQuantity} units added to stock successfully. New total: {$newQuantity} / {$maxQuantity}");
+                
+        } catch (\Exception $e) {
+            Log::error('Error adding stock: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to add stock. Error: ' . $e->getMessage());
         }
     }
 }

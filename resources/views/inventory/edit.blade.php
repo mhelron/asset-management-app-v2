@@ -112,10 +112,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="asset_type_id">Asset Type<span class="text-danger"> *</span></label>
-                                        <select name="asset_type_id" id="asset_type_id" class="form-control">
+                                        <select name="asset_type_id" id="asset_type_id" class="form-control" onchange="checkQuantityTracking()">
                                             <option value="" disabled>Select an asset type</option>
                                             @foreach ($assetTypes as $assetType)
-                                                <option value="{{ $assetType->id }}" {{ old('asset_type_id', $inventoryItem->asset_type_id) == $assetType->id ? 'selected' : '' }}>
+                                                <option value="{{ $assetType->id }}" 
+                                                    data-has-quantity="{{ $assetType->has_quantity }}" 
+                                                    data-quantity-unit="{{ $assetType->quantity_unit }}"
+                                                    {{ old('asset_type_id', $inventoryItem->asset_type_id) == $assetType->id ? 'selected' : '' }}>
                                                     {{ $assetType->name }}
                                                 </option>
                                             @endforeach
@@ -153,6 +156,32 @@
                                         @error('serial_no', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <!-- Quantity Fields -->
+                            <div id="quantity_fields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label>Maximum Quantity<span class="text-danger"> *</span></label>
+                                            <input type="number" name="max_quantity" value="{{ old('max_quantity', $inventoryItem->max_quantity) }}" class="form-control" placeholder="Enter maximum quantity" min="0">
+                                            <small class="form-text text-muted">The total capacity or maximum stock available</small>
+                                            @error('max_quantity', 'inventoryForm')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label>Minimum Quantity<span class="text-danger"> *</span></label>
+                                            <input type="number" name="min_quantity" value="{{ old('min_quantity', $inventoryItem->min_quantity) }}" class="form-control" placeholder="Enter minimum quantity" min="0">
+                                            <small class="form-text text-muted">You will be notified when quantity falls below this level</small>
+                                            @error('min_quantity', 'inventoryForm')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -489,6 +518,22 @@
             document.getElementById('asset_location_container').style.display = 'none';
         } catch (e) {
             console.error('Error in hideAllDropdowns:', e);
+        }
+    }
+    
+    // Function to check if the selected asset type has quantity tracking
+    function checkQuantityTracking() {
+        const assetTypeSelect = document.getElementById('asset_type_id');
+        const quantityFields = document.getElementById('quantity_fields');
+        
+        if (assetTypeSelect && quantityFields) {
+            const selectedOption = assetTypeSelect.options[assetTypeSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.getAttribute('data-has-quantity') === '1') {
+                quantityFields.style.display = 'block';
+            } else {
+                quantityFields.style.display = 'none';
+            }
         }
     }
     
@@ -895,6 +940,12 @@
         
         // Check for validation errors when the page loads
         displayCategoryFieldErrors();
+    });
+
+    // Initialize quantity fields on document load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize quantity fields
+        checkQuantityTracking();
     });
 </script>
 

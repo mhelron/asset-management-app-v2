@@ -61,4 +61,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Inventory::class, 'users_id');
     }
+
+    /**
+     * Get all item distributions assigned to this user.
+     */
+    public function itemDistributions()
+    {
+        return $this->hasMany(ItemDistribution::class);
+    }
+
+    /**
+     * Get active item distributions (where quantity_remaining > 0).
+     */
+    public function activeItemDistributions()
+    {
+        return $this->hasMany(ItemDistribution::class)
+            ->where('quantity_remaining', '>', 0);
+    }
 }

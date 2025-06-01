@@ -240,8 +240,14 @@ class UserController extends Controller
             return redirect()->route('login.form')->with('error', 'User not authenticated');
         }
         
-        // Get the user with related data
-        $user = User::with(['assets', 'department'])->findOrFail($userId);
+        // Get the user with related data including item distributions
+        $user = User::with([
+            'assets', 
+            'department',
+            'activeItemDistributions.inventory',
+            'activeItemDistributions.inventory.assetType',
+            'activeItemDistributions.inventory.category'
+        ])->findOrFail($userId);
         
         return view('users.my-profile', ['user' => $user]);
     }

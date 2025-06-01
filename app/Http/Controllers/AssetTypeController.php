@@ -32,6 +32,7 @@ class AssetTypeController extends Controller
             'status' => 'Active',
             'requires_qr_code' => $request->has('requires_qr_code') ? 1 : 0,
             'is_requestable' => $request->has('is_requestable') ? 1 : 0,
+            'has_quantity' => $request->has('has_quantity') ? 1 : 0,
         ]);
 
         // Log activity
@@ -61,6 +62,7 @@ class AssetTypeController extends Controller
             'status' => $validatedData['status'],
             'requires_qr_code' => $request->has('requires_qr_code') ? 1 : 0,
             'is_requestable' => $request->has('is_requestable') ? 1 : 0,
+            'has_quantity' => $request->has('has_quantity') ? 1 : 0,
         ]);
 
         // Log activity

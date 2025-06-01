@@ -86,6 +86,7 @@
                                         <th>Status</th>
                                         <th>QR Code</th>
                                         <th>Requestable</th>
+                                        <th>Quantity</th>
                                         <th>Options</th>
                                     </tr>
                                 </thead>
@@ -111,6 +112,13 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if($assetType->has_quantity)
+                                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Yes</span>
+                                            @else
+                                                <span class="badge bg-secondary"><i class="bi bi-x-lg me-1"></i>No</span>
+                                            @endif
+                                        </td>
+                                        <td>
                                             <div class="d-flex">
                                                 <a href="{{ route('asset-types.edit', $assetType->id) }}" class="btn btn-sm btn-success me-2"><i class="bi bi-pencil-square"></i></a>
                                                 <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#archiveModal" 
@@ -122,7 +130,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No asset types found</td>
+                                        <td colspan="8" class="text-center">No asset types found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

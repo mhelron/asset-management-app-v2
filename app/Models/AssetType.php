@@ -16,10 +16,28 @@ class AssetType extends Model
         'status',
         'requires_qr_code',
         'is_requestable',
+        'has_quantity',
     ];
 
     public function inventories()
     {
         return $this->hasMany(Inventory::class);
+    }
+    
+    /**
+     * Get all inventory items with low quantity for this asset type
+     */
+    public function getLowQuantityItems()
+    {
+        if (!$this->has_quantity) {
+            return collect();
+        }
+        
+        return $this->inventories()
+            ->whereNotNull('quantity')
+            ->whereNotNull('min_quantity')
+            ->whereRaw('quantity <= min_quantity')
+            ->where('low_quantity_notified', false)
+            ->get();
     }
 }

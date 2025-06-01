@@ -203,6 +203,26 @@
                     <a href="{{ route('inventory.edit', $inventoryItem->id) }}" class="btn btn-success me-2">
                         <i class="bi bi-pencil-square me-2"></i>Edit Asset
                     </a>
+                    @if($inventoryItem->assetType && $inventoryItem->assetType->has_quantity && $inventoryItem->quantity > 0)
+                    <button type="button" class="btn btn-primary me-2 distribute-btn" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#distributeModal">
+                        <i class="bi bi-box-arrow-right me-2"></i>Distribute Item
+                    </button>
+                    @endif
+                    @if($inventoryItem->assetType && $inventoryItem->assetType->has_quantity)
+                        @if($inventoryItem->max_quantity > $inventoryItem->quantity)
+                        <button type="button" class="btn btn-info me-2 add-stock-btn" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#addStockModal">
+                            <i class="bi bi-plus-circle me-2"></i>Add Stock ({{ $inventoryItem->max_quantity - $inventoryItem->quantity }} available)
+                        </button>
+                        @else
+                        <button type="button" class="btn btn-secondary me-2" disabled>
+                            <i class="bi bi-plus-circle me-2"></i>Maximum Stock Reached
+                        </button>
+                        @endif
+                    @endif
                     <a href="{{ route('inventory.index') }}" class="btn btn-danger">
                         <i class="bi bi-arrow-return-left me-2"></i>Back
                     </a>
@@ -219,6 +239,13 @@
                                             <i class="bi bi-box-seam me-2"></i>Asset Details
                                         </button>
                                     </li>
+                                    @if($inventoryItem->assetType && $inventoryItem->assetType->has_quantity)
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-4 py-3" id="asset_distributions" data-bs-toggle="tab" data-bs-target="#distributions" type="button" role="tab" aria-controls="distributions" aria-selected="false">
+                                            <i class="bi bi-people me-2"></i>Distributions
+                                        </button>
+                                    </li>
+                                    @endif
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link px-4 py-3" id="asset_history" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
                                             <i class="bi bi-clock-history me-2"></i>History
@@ -324,6 +351,60 @@
                                                         <td>{{ $inventoryItem->manufacturer }}</td>
                                                     </tr>
                                                     
+                                                    @if($inventoryItem->assetType && $inventoryItem->assetType->has_quantity)
+                                                    <!-- Quantity Information Section -->
+                                                    <tr class="bg-light">
+                                                        <th colspan="2" class="text-center">Quantity Information</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Maximum Quantity</th>
+                                                        <td>
+                                                            {{ $inventoryItem->max_quantity }}
+                                                            <small class="text-muted d-block">The total capacity or maximum stock available</small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Minimum Quantity</th>
+                                                        <td>
+                                                            {{ $inventoryItem->min_quantity }}
+                                                            <small class="text-muted d-block">Low stock threshold for notifications</small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Available Quantity</th>
+                                                        <td>
+                                                            @if($inventoryItem->available_quantity <= $inventoryItem->min_quantity)
+                                                                <span class="badge bg-danger">{{ $inventoryItem->available_quantity }}</span>
+                                                                <small class="text-danger">Low stock!</small>
+                                                            @else
+                                                                <span class="badge bg-success">{{ $inventoryItem->available_quantity }}</span>
+                                                            @endif
+                                                            <small class="text-muted d-block">Quantity currently in stock available for distribution</small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Distributed Quantity</th>
+                                                        <td>
+                                                            {{ $inventoryItem->distributed_quantity }}
+                                                            <small class="text-muted d-block">Currently assigned to users but not yet consumed</small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Consumed Quantity</th>
+                                                        <td>
+                                                            {{ $inventoryItem->consumed_quantity }}
+                                                            <small class="text-muted d-block">Permanently used/consumed items</small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Available Space</th>
+                                                        <td>
+                                                            {{ $inventoryItem->max_quantity - $inventoryItem->quantity }}
+                                                            <small class="text-muted d-block">Space available to add more stock</small>
+                                                        </td>
+                                                    </tr>
+                                                    @endif
+                                                    
                                                     <!-- Include Custom Fields directly in details tab -->
                                                     @if($inventoryItem->custom_fields && count($inventoryItem->custom_fields) > 0)
                                                         @foreach($allCustomFields as $field)
@@ -363,6 +444,80 @@
                                             Asset history tracking will be implemented in a future update.
                                         </div>
                                     </div>
+
+                                    <!-- Distributions Tab -->
+                                    @if($inventoryItem->assetType && $inventoryItem->assetType->has_quantity)
+                                    <div class="tab-pane fade" id="distributions" role="tabpanel" aria-labelledby="asset_distributions">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="mb-0">Distribution History</h5>
+                                            <div>
+                                                @if($inventoryItem->quantity > 0)
+                                                <button type="button" class="btn btn-sm btn-primary distribute-btn me-2" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#distributeModal">
+                                                    <i class="bi bi-plus-lg me-1"></i> Distribute Item
+                                                </button>
+                                                @endif
+                                                @if($inventoryItem->max_quantity > $inventoryItem->quantity)
+                                                <button type="button" class="btn btn-sm btn-info add-stock-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addStockModal">
+                                                    <i class="bi bi-plus-circle me-1"></i> Add Stock ({{ $inventoryItem->max_quantity - $inventoryItem->quantity }} available)
+                                                </button>
+                                                @else
+                                                <button type="button" class="btn btn-sm btn-secondary" disabled>
+                                                    <i class="bi bi-plus-circle me-1"></i> Maximum Stock Reached
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>User</th>
+                                                        <th>Assigned Qty</th>
+                                                        <th>Remaining Qty</th>
+                                                        <th>Consumed Qty</th>
+                                                        <th>Assigned By</th>
+                                                        <th>Date</th>
+                                                        <th>Notes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($inventoryItem->distributions as $distribution)
+                                                    <tr>
+                                                        <td>
+                                                            <a href="{{ route('users.view', $distribution->user->id) }}">
+                                                                {{ $distribution->user->first_name }} {{ $distribution->user->last_name }}
+                                                            </a>
+                                                        </td>
+                                                        <td>{{ $distribution->quantity_assigned }}</td>
+                                                        <td>
+                                                            @if($distribution->isFullyUsed())
+                                                                <span class="badge bg-secondary">Used (0)</span>
+                                                            @elseif($distribution->isPartiallyUsed())
+                                                                <span class="badge bg-warning">{{ $distribution->quantity_remaining }}</span>
+                                                            @else
+                                                                <span class="badge bg-success">{{ $distribution->quantity_remaining }}</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $distribution->quantity_assigned - $distribution->quantity_remaining }}</td>
+                                                        <td>{{ $distribution->assigner->first_name }} {{ $distribution->assigner->last_name }}</td>
+                                                        <td>{{ $distribution->created_at->format('M d, Y') }}</td>
+                                                        <td>{{ $distribution->notes ?? 'N/A' }}</td>
+                                                    </tr>
+                                                    @empty
+                                                    <tr>
+                                                        <td colspan="7" class="text-center py-3">No distributions found for this item.</td>
+                                                    </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -506,6 +661,27 @@
 <!-- JavaScript for Note Actions -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Check for tab parameter in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
+        // Activate the correct tab based on URL parameter
+        if (tabParam) {
+            if (tabParam === 'distributions') {
+                const distributionsTab = document.getElementById('asset_distributions');
+                if (distributionsTab) {
+                    const tab = new bootstrap.Tab(distributionsTab);
+                    tab.show();
+                }
+            } else if (tabParam === 'history') {
+                const historyTab = document.getElementById('asset_history');
+                if (historyTab) {
+                    const tab = new bootstrap.Tab(historyTab);
+                    tab.show();
+                }
+            }
+        }
+        
         // Edit Note Modal Handler
         const editButtons = document.querySelectorAll('.edit-note-btn');
         const editForm = document.getElementById('editNoteForm');
@@ -667,5 +843,99 @@
         alert('URL copied to clipboard!');
     }
 </script>
+
+<!-- Distribute Modal -->
+<div class="modal fade" id="distributeModal" tabindex="-1" aria-labelledby="distributeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="distributeModalLabel">Distribute Item</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('distributions.store', $inventoryItem->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p>Distribute <strong>{{ $inventoryItem->item_name }}</strong> to a user:</p>
+                    
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User <span class="text-danger">*</span></label>
+                        <select name="user_id" id="user_id" class="form-select" required>
+                            <option value="">Select a user</option>
+                            @foreach(\App\Models\User::where('id', '!=', Auth::id())->get() as $user)
+                                <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="{{ $inventoryItem->quantity }}" value="1" required>
+                        <small class="text-muted">Maximum available for distribution: <strong>{{ $inventoryItem->quantity }}</strong> units</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add any notes about this distribution"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Distribute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('inventory.add-stock', $inventoryItem->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p>Add stock to <strong>{{ $inventoryItem->item_name }}</strong>:</p>
+                    
+                    <div class="mb-3">
+                        <label for="add_quantity" class="form-label">Quantity to Add <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="add_quantity" name="add_quantity" min="1" max="{{ $inventoryItem->max_quantity - $inventoryItem->quantity }}" value="1" required>
+                        <small class="text-muted">Available space: <strong>{{ $inventoryItem->max_quantity - $inventoryItem->quantity }}</strong> units (Maximum: {{ $inventoryItem->max_quantity }})</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="stock_note" class="form-label">Note (Optional)</label>
+                        <textarea class="form-control" id="stock_note" name="stock_note" rows="3" placeholder="Add any notes about this stock addition (e.g., purchase details, batch number)"></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Current Inventory Status:</strong><br>
+                        <ul class="mb-0 ps-3">
+                            <li>Maximum Quantity: {{ $inventoryItem->max_quantity }}</li>
+                            <li>Current Quantity: {{ $inventoryItem->quantity }}</li>
+                            <li>Available Space: {{ $inventoryItem->max_quantity - $inventoryItem->quantity }}</li>
+                            <li>Minimum Quantity: {{ $inventoryItem->min_quantity }}</li>
+                            <li>Total Tracked:</li>
+                            <ul>
+                                <li>In Stock: {{ $inventoryItem->quantity }}</li>
+                                <li>Distributed: {{ $inventoryItem->distributed_quantity }}</li>
+                                <li>Consumed: {{ $inventoryItem->consumed_quantity }}</li>
+                                <li>Total: {{ $inventoryItem->quantity + $inventoryItem->distributed_quantity + $inventoryItem->consumed_quantity }}</li>
+                            </ul>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Add Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @endsection 

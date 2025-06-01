@@ -35,7 +35,8 @@ class RolePermissionMiddleware
             'inventory.show',
             'inventory.data',
             'inventory.transfer',
-            'inventory.request'
+            'inventory.request',
+            'distributions.use-items'
 
         ],
     ];

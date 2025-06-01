@@ -11,6 +11,9 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AssetTypeController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\ItemDistributionController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AssetRequestController;
 
 
 //Logout Route
@@ -82,6 +85,7 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::get('test-qr/{id}', [InventoryController::class, 'testQRCode'])->name('inventory.test-qr');
         Route::post('transfer/{id}', [InventoryController::class, 'transferAsset'])->name('inventory.transfer');
         Route::post('request/{id}', [InventoryController::class, 'requestAsset'])->name('inventory.request');
+        Route::post('add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventory.add-stock');
     });
 
     // Custom Fields Route
@@ -124,5 +128,31 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::get('edit-location/{id}', [LocationController::class, 'edit'])->name('locations.edit');
         Route::put('update-location/{id}', [LocationController::class, 'update'])->name('locations.update');
         Route::delete('/archive-location/{id}', [LocationController::class, 'archive'])->name('locations.archive');
+    });
+
+    // Item Distributions
+    Route::group(['prefix' => 'distributions', 'middleware' => ['auth']], function () {
+        Route::get('/my-items', [ItemDistributionController::class, 'myItems'])->name('distributions.my-items');
+        Route::get('/by-item/{id}', [ItemDistributionController::class, 'indexByItem'])->name('distributions.by-item');
+        Route::post('/store/{id}', [ItemDistributionController::class, 'store'])->name('distributions.store');
+        Route::post('/use-items/{id}', [ItemDistributionController::class, 'useItems'])->name('distributions.use-items');
+    });
+
+    // Notifications
+    Route::prefix('/notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/mark-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::get('/check-low-inventory', [NotificationController::class, 'checkLowInventory'])->name('notifications.check-low-inventory');
+    });
+
+    // Asset Requests
+    Route::prefix('/asset-requests')->group(function () {
+        Route::get('/', [AssetRequestController::class, 'index'])->name('asset-requests.index');
+        Route::get('/create', [AssetRequestController::class, 'create'])->name('asset-requests.create');
+        Route::post('/store', [AssetRequestController::class, 'store'])->name('asset-requests.store');
+        Route::get('/show/{id}', [AssetRequestController::class, 'show'])->name('asset-requests.show');
+        Route::post('/update-status/{id}', [AssetRequestController::class, 'updateStatus'])->name('asset-requests.update-status');
+        Route::get('/my-requests', [AssetRequestController::class, 'myRequests'])->name('asset-requests.my-requests');
     });
 });

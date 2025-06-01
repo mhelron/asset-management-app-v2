@@ -67,12 +67,12 @@
                 <div class="card shadow h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="me-3 stat-card-icon bg-success bg-opacity-10">
-                            <i class="bi bi-cpu text-success" style="font-size: 2rem;"></i>
+                            <i class="bi bi-box2-heart text-success" style="font-size: 2rem;"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1">Total Components</h6>
-                            <h2 class="mb-0 fw-bold">0</h2>
-                            <a href="#" class="text-success small">View all components →</a>
+                            <h6 class="text-muted mb-1">Consumable Items</h6>
+                            <h2 class="mb-0 fw-bold">{{ \App\Models\Inventory::whereHas('assetType', function($q) { $q->where('has_quantity', 1); })->count() }}</h2>
+                            <a href="{{ route('inventory.index') }}" class="text-success small">View all items →</a>
                         </div>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <p class="mb-0 fw-bold">Component marked for maintenance</p>
+                                    <p class="mb-0 fw-bold">Low stock alert for consumable items</p>
                                     <small class="text-muted">Sep 15, 2023</small>
                                 </div>
                             </li>

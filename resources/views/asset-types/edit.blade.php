@@ -103,6 +103,21 @@
                                 </div>
                             </div>
 
+                            <!-- Has Quantity -->
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="has_quantity" id="has_quantity" value="1" {{ old('has_quantity', $assetType->has_quantity) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="has_quantity">
+                                            Track Quantity
+                                        </label>
+                                        <small class="form-text text-muted d-block">
+                                            Check this option if assets of this type should track quantity. This is useful for consumables, inventory items, or any assets that need quantity monitoring.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Submit button -->
                             <div class="form-group mb-3">
                                 <button type="submit" class="btn btn-dark float-end"><i class="bi bi-pencil-square me-2"></i>Update Asset Type</button>
@@ -116,5 +131,12 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Any initialization code here
+    });
+</script>
 
 @endsection 
