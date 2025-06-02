@@ -60,11 +60,12 @@ class CategoryController extends Controller
             $customFieldsJson = json_encode($request->custom_fields);
         }
 
-        // Create category with custom fields included
+        // Create category with custom fields included and set type to 'Asset' by default
         $category = Category::create([
             'category' => $validated['category'],
             'desc' => $validated['desc'],
-            'custom_fields' => $customFieldsJson
+            'custom_fields' => $customFieldsJson,
+            'type' => 'Asset' // Set default type to Asset
         ]);
 
         // Log activity
@@ -110,7 +111,8 @@ class CategoryController extends Controller
                 'category' => $validatedData['category'],
                 'desc' => $validatedData['desc'],
                 'status' => $validatedData['status'],
-                'custom_fields' => $customFieldsJson
+                'custom_fields' => $customFieldsJson,
+                'type' => $category->type ?? 'Asset' // Preserve existing type or set to Asset as default
             ]);
 
             // Log activity

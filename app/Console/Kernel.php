@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         Commands\TestNotification::class,
         Commands\TestLowQuantityNotification::class,
         Commands\CreateTestInventory::class,
+        Commands\CheckUserLowItems::class,
     ];
 
     /**
@@ -27,6 +28,9 @@ class Kernel extends ConsoleKernel
     {
         // Check for low quantity items daily at 8:00 AM
         $schedule->command('inventory:check-low-quantity')->dailyAt('08:00');
+        
+        // Check for user low items daily at 9:00 AM
+        $schedule->command('app:check-user-low-items')->dailyAt('09:00');
     }
 
     /**

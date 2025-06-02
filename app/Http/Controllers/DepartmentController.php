@@ -17,18 +17,6 @@ class DepartmentController extends Controller
         
         $departments = Department::with('location')->whereNull('deleted_at')->get();
         
-        // Temporary fix: Ensure all departments with location_id have the relationship
-        foreach($departments as $department) {
-            if($department->location_id && !$department->location) {
-                // Get the location directly
-                $locationInfo = DB::table('locations')->where('id', $department->location_id)->first();
-                if($locationInfo) {
-                    // Add debug information
-                    session()->flash('info', "Found location {$locationInfo->name} for department {$department->name}");
-                }
-            }
-        }
-        
         return view('departments.index', compact('departments'));
     }
 

@@ -78,6 +78,8 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::delete('archive-item/{id}', [InventoryController::class, 'archive'])->name('inventory.archive');
         Route::get('show-inventory/{id}', [InventoryController::class, 'show'])->name('inventory.show');
         Route::get('get-category-fields/{id}', [InventoryController::class, 'getCategoryFields'])->name('inventory.category.fields');
+        Route::get('get-category-fields/refresh', [InventoryController::class, 'getRefreshedCategories'])->name('inventory.refresh.categories');
+        Route::get('get-asset-types/refresh', [InventoryController::class, 'getRefreshedAssetTypes'])->name('inventory.refresh.asset-types');
         Route::get('get-item-details/{id}', [InventoryController::class, 'getItemDetails']);
         Route::get('get-custom-fields/{id}', [InventoryController::class, 'getCustomFields']);
         Route::post('add-note/{id}', [InventoryController::class, 'addNote'])->name('inventory.add-note');

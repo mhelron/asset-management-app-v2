@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\ActivityLogger;
+use App\Models\AssetType;
 
 class UserController extends Controller
 {
@@ -249,7 +250,19 @@ class UserController extends Controller
             'activeItemDistributions.inventory.category'
         ])->findOrFail($userId);
         
-        return view('users.my-profile', ['user' => $user]);
+        // Get all active asset types
+        $assetTypes = AssetType::where('status', 'Active')->get();
+        
+        // Get asset type statistics with counts
+        $assetTypeStats = AssetType::withCount('inventories')
+            ->where('status', 'Active')
+            ->orderBy('inventories_count', 'desc')
+            ->get();
+            
+        // Get the selected tab from the request
+        $tab = request('tab', 'assets');
+        
+        return view('users.my-profile', compact('user', 'assetTypes', 'assetTypeStats', 'tab'));
     }
     
     public function updateMyProfile(Request $request)

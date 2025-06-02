@@ -312,8 +312,24 @@ class InventoryController extends Controller
         $assetTag = old('asset_tag') ?: $this->generateAssetTag();
         
         $assetCustomFields = CustomField::whereJsonContains('applies_to', 'Asset')->get();
+        
+        // Check if categories exist
+        $showCategoryWarning = $categories->isEmpty();
+        
+        // Check if asset types exist
+        $showAssetTypeWarning = $assetTypes->isEmpty();
     
-        return view('inventory.create', compact('categories', 'departments', 'users', 'assetTag', 'assetCustomFields', 'assetTypes', 'locations'));
+        return view('inventory.create', compact(
+            'categories', 
+            'departments', 
+            'users', 
+            'assetTag', 
+            'assetCustomFields', 
+            'assetTypes', 
+            'locations',
+            'showCategoryWarning',
+            'showAssetTypeWarning'
+        ));
     }
 
     // Validation rules for inventory items with quantity tracking
@@ -331,6 +347,18 @@ class InventoryController extends Controller
         Log::info('Inventory store request data:', $request->all());
         
         try {
+            // Check if categories exist
+            $categoriesExist = Category::where('type', 'Asset')->exists();
+            if (!$categoriesExist) {
+                return redirect()->back()->with('error', 'You must create at least one category before adding an asset.')->withInput();
+            }
+            
+            // Check if asset types exist
+            $assetTypesExist = AssetType::where('status', 'Active')->exists();
+            if (!$assetTypesExist) {
+                return redirect()->back()->with('error', 'You must create at least one asset type before adding an asset.')->withInput();
+            }
+            
             $existingItem = Inventory::withTrashed()
                 ->where('serial_no', $request->serial_no)
                 ->first();
@@ -1222,5 +1250,27 @@ class InventoryController extends Controller
             return redirect()->back()
                 ->with('error', 'Failed to add stock. Error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get refreshed categories list for the AJAX request.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getRefreshedCategories()
+    {
+        $categories = Category::where('type', 'Asset')->get();
+        return response()->json(['categories' => $categories]);
+    }
+
+    /**
+     * Get refreshed asset types list for the AJAX request.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getRefreshedAssetTypes()
+    {
+        $assetTypes = AssetType::where('status', 'Active')->get();
+        return response()->json(['assetTypes' => $assetTypes]);
     }
 }

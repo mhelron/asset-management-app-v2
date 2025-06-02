@@ -69,6 +69,22 @@
                 <div class="d-flex justify-content-end mb-2">
                     <a href="{{ route('inventory.index') }}" class="btn btn-danger"><i class="bi bi-arrow-return-left me-2"></i>Back</a>
                 </div>
+                
+                <!-- Warning alerts for missing categories or asset types -->
+                @if($showCategoryWarning)
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Warning!</strong> No categories found. Please <a href="{{ route('categories.create') }}" class="alert-link">add at least one category</a> before creating an asset.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+                
+                @if($showAssetTypeWarning)
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Warning!</strong> No asset types found. Please <a href="{{ route('asset-types.create') }}" class="alert-link">add at least one asset type</a> before creating an asset.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+                
                 <!-- Add Inventory Form -->
                 <div class="card">
                     <div class="card-body form-container">
@@ -116,17 +132,22 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="asset_type_id">Asset Type<span class="text-danger"> *</span></label>
-                                        <select name="asset_type_id" id="asset_type_id" class="form-control" onchange="checkQuantityTracking()">
-                                            <option value="" disabled selected>Select an asset type</option>
-                                            @foreach ($assetTypes as $assetType)
-                                                <option value="{{ $assetType->id }}" 
-                                                    data-has-quantity="{{ $assetType->has_quantity }}" 
-                                                    data-quantity-unit="{{ $assetType->quantity_unit }}"
-                                                    {{ old('asset_type_id') == $assetType->id ? 'selected' : '' }}>
-                                                    {{ $assetType->name }} 
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div class="input-group">
+                                            <select name="asset_type_id" id="asset_type_id" class="form-control" onchange="checkQuantityTracking()">
+                                                <option value="" disabled selected>Select an asset type</option>
+                                                @foreach ($assetTypes as $assetType)
+                                                    <option value="{{ $assetType->id }}" 
+                                                        data-has-quantity="{{ $assetType->has_quantity }}" 
+                                                        data-quantity-unit="{{ $assetType->quantity_unit }}"
+                                                        {{ old('asset_type_id') == $assetType->id ? 'selected' : '' }}>
+                                                        {{ $assetType->name }} 
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <a href="{{ route('asset-types.create') }}" class="btn btn-outline-secondary" target="_blank" title="Add New Asset Type">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </a>
+                                        </div>
                                         @error('asset_type_id', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
@@ -139,14 +160,19 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="categories">Asset Category<span class="text-danger"> *</span></label>
-                                        <select name="category_id" id="category_select" class="form-control">
-                                            <option value="" disabled selected>Select a category</option>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->category }} 
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div class="input-group">
+                                            <select name="category_id" id="category_select" class="form-control">
+                                                <option value="" disabled selected>Select a category</option>
+                                                @foreach ($categories as $category)
+                                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                        {{ $category->category }} 
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <a href="{{ route('categories.create') }}" class="btn btn-outline-secondary" target="_blank" title="Add New Category">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </a>
+                                        </div>
                                         @error('category_id', 'inventoryForm')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
@@ -951,6 +977,73 @@
                 generateAssetTag();
             }
         }
+
+        // Handle the refresh of select boxes when returning from add windows
+        function refreshSelectOptions() {
+            // Refresh Category Select
+            fetch('/inventory/get-category-fields/refresh')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.categories) {
+                        const categorySelect = document.getElementById('category_select');
+                        const currentValue = categorySelect.value;
+                        
+                        // Clear all options except the first one
+                        while (categorySelect.options.length > 1) {
+                            categorySelect.remove(1);
+                        }
+                        
+                        // Add new options
+                        data.categories.forEach(category => {
+                            const option = new Option(category.category, category.id);
+                            categorySelect.add(option);
+                        });
+                        
+                        // Restore selected value if possible
+                        if (currentValue) {
+                            categorySelect.value = currentValue;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error refreshing categories:', error));
+                
+            // Refresh Asset Type Select
+            fetch('/inventory/get-asset-types/refresh')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.assetTypes) {
+                        const assetTypeSelect = document.getElementById('asset_type_id');
+                        const currentValue = assetTypeSelect.value;
+                        
+                        // Clear all options except the first one
+                        while (assetTypeSelect.options.length > 1) {
+                            assetTypeSelect.remove(1);
+                        }
+                        
+                        // Add new options
+                        data.assetTypes.forEach(assetType => {
+                            const option = new Option(assetType.name, assetType.id);
+                            option.setAttribute('data-has-quantity', assetType.has_quantity);
+                            option.setAttribute('data-quantity-unit', assetType.quantity_unit);
+                            assetTypeSelect.add(option);
+                        });
+                        
+                        // Restore selected value if possible
+                        if (currentValue) {
+                            assetTypeSelect.value = currentValue;
+                        }
+                        
+                        // Check quantity tracking in case the asset type was changed
+                        if (typeof checkQuantityTracking === 'function') {
+                            checkQuantityTracking();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error refreshing asset types:', error));
+        }
+        
+        // Set an event listener to refresh options when window gets focus
+        window.addEventListener('focus', refreshSelectOptions);
     });
 </script>
 @endsection

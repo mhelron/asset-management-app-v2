@@ -16,6 +16,7 @@ class ItemDistribution extends Model
         'quantity_remaining',
         'assigned_by',
         'notes',
+        'low_quantity_notified',
     ];
 
     /**
@@ -75,5 +76,13 @@ class ItemDistribution extends Model
         $this->save();
         
         return true;
+    }
+    
+    /**
+     * Check if the distribution has low quantity based on threshold.
+     */
+    public function hasLowQuantity($threshold = 3)
+    {
+        return $this->quantity_remaining > 0 && $this->quantity_remaining <= $threshold;
     }
 } 

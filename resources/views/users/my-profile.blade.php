@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    use Illuminate\Support\Str;
+@endphp
 <style>
     body {
         background-color: #f2f5f9;
@@ -128,18 +131,53 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="p-3 rounded-3 bg-light text-center border">
-                                    <h2 class="mb-1">{{ $user->assets->count() }}</h2>
-                                    <p class="text-muted mb-0">Assigned Assets</p>
+                            @php
+                                // Define a list of colors to use for the stats
+                                $colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+                            @endphp
+                            
+                            @foreach($assetTypes as $index => $type)
+                                @php
+                                    $colorIndex = $index % count($colors);
+                                    $color = $colors[$colorIndex];
+                                    
+                                    // Count assets of this type assigned to the user
+                                    $typeCount = $user->assets->filter(function($asset) use ($type) {
+                                        return $asset->asset_type_id == $type->id;
+                                    })->count();
+                                    
+                                    // Get the first letter of the type name for the icon
+                                    $firstLetter = strtoupper(substr($type->name, 0, 1));
+                                @endphp
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="p-3 rounded-3 bg-light text-center border">
+                                        <div class="d-flex align-items-center justify-content-center mb-2">
+                                            <div class="me-2 letter-icon bg-{{ $color }} bg-opacity-10 text-{{ $color }}" style="width: 40px; height: 40px; font-size: 1.3rem;">
+                                                {{ $firstLetter }}
+                                            </div>
+                                            <h5 class="mb-0">{{ $type->name }}</h5>
+                                        </div>
+                                        <h2 class="mb-1">{{ $typeCount }}</h2>
+                                        <p class="text-muted mb-0">Assigned to You</p>
+                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
+                            
+                            @if($user->activeItemDistributions->count() > 0)
                             <div class="col-md-6 mb-3">
                                 <div class="p-3 rounded-3 bg-light text-center border">
+                                    <div class="d-flex align-items-center justify-content-center mb-2">
+                                        <div class="me-2 letter-icon bg-info bg-opacity-10 text-info" style="width: 40px; height: 40px; font-size: 1.3rem;">
+                                            <i class="bi bi-boxes"></i>
+                                        </div>
+                                        <h5 class="mb-0">Consumable Items</h5>
+                                    </div>
                                     <h2 class="mb-1">{{ $user->activeItemDistributions->count() }}</h2>
-                                    <p class="text-muted mb-0">Consumable Items</p>
+                                    <p class="text-muted mb-0">Items in Your Inventory</p>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -147,20 +185,45 @@
                 <!-- Assigned Assets Tab Section -->
                 <div class="card shadow mb-4">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>My Assignments</h5>
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>My Inventory</h5>
                     </div>
                     <div class="card-body">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <!-- Dynamic tabs based on asset types -->
+                            @foreach($assetTypes as $index => $type)
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active px-4 py-3" id="assets-tab" data-bs-toggle="tab" data-bs-target="#assets-tab-pane" type="button" role="tab" aria-controls="assets-tab-pane" aria-selected="true">Assets</button>
+                                <button class="nav-link px-4 py-3 {{ ($tab == $type->name || ($index == 0 && $tab == 'assets')) ? 'active' : '' }}" 
+                                    id="{{ Str::slug($type->name) }}-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#{{ Str::slug($type->name) }}-tab-pane" 
+                                    type="button" 
+                                    role="tab" 
+                                    aria-controls="{{ Str::slug($type->name) }}-tab-pane" 
+                                    aria-selected="{{ $index == 0 ? 'true' : 'false' }}">{{ $type->name }}</button>
                             </li>
+                            @endforeach
+                            
+                            @if($user->activeItemDistributions->count() > 0)
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link px-4 py-3" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane" type="button" role="tab" aria-controls="items-tab-pane" aria-selected="false">My Items</button>
+                                <button class="nav-link px-4 py-3 {{ $tab == 'items' ? 'active' : '' }}" 
+                                    id="items-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#items-tab-pane" 
+                                    type="button" 
+                                    role="tab" 
+                                    aria-controls="items-tab-pane" 
+                                    aria-selected="false">Consumable Items</button>
                             </li>
+                            @endif
                         </ul>
                         <div class="tab-content mt-4" id="myTabContent">
-                            <!-- Assets Tab -->
-                            <div class="tab-pane fade show active" id="assets-tab-pane" role="tabpanel" aria-labelledby="assets-tab" tabindex="0">
+                            <!-- Dynamic content tabs for each asset type -->
+                            @foreach($assetTypes as $index => $type)
+                            <div class="tab-pane fade {{ ($tab == $type->name || ($index == 0 && $tab == 'assets')) ? 'show active' : '' }}" 
+                                id="{{ Str::slug($type->name) }}-tab-pane" 
+                                role="tabpanel" 
+                                aria-labelledby="{{ Str::slug($type->name) }}-tab" 
+                                tabindex="0">
                                 <div class="table-responsive">
                                     <table class="table table-hover">
                                         <thead class="table-light">
@@ -172,29 +235,37 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($user->assets as $asset)
+                                            @php
+                                                $filteredAssets = $user->assets->filter(function($asset) use ($type) {
+                                                    return $asset->asset_type_id == $type->id;
+                                                });
+                                            @endphp
+                                            
+                                            @forelse($filteredAssets as $asset)
                                             <tr>
                                                 <td>
-                                                    <a href="{{ route('inventory.show', $asset->id) }}" class="text-decoration-none">{{ $asset->name }}</a>
+                                                    <a href="{{ route('inventory.show', $asset->id) }}" class="text-decoration-none">{{ $asset->item_name }}</a>
                                                 </td>
-                                                <td>{{ $asset->category->name ?? 'N/A' }}</td>
-                                                <td>{{ $asset->serial_number }}</td>
+                                                <td>{{ $asset->category->category ?? 'N/A' }}</td>
+                                                <td>{{ $asset->serial_no }}</td>
                                                 <td>
                                                     <span class="badge bg-success">Assigned</span>
                                                 </td>
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="4" class="text-center py-3">No assets assigned yet</td>
+                                                <td colspan="4" class="text-center py-3">No {{ $type->name }} assigned yet</td>
                                             </tr>
                                             @endforelse
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            @endforeach
                             
+                            @if($user->activeItemDistributions->count() > 0)
                             <!-- My Items Tab -->
-                            <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
+                            <div class="tab-pane fade {{ $tab == 'items' ? 'show active' : '' }}" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
                                 <div class="table-responsive">
                                     <table class="table table-hover">
                                         <thead class="table-light">
@@ -251,6 +322,7 @@
                                     </table>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>

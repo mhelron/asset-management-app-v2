@@ -25,7 +25,21 @@ class RolePermissionMiddleware
             'inventory.show',
             'inventory.data',
             'inventory.transfer',
-            'inventory.request'
+            'inventory.request',
+            'distributions.use-items',
+            'distributions.by-item',
+            'distributions.store',
+            'distributions.use-items',
+            'notifications.index',
+            'notifications.mark-read',
+            'notifications.mark-all-read',
+            'notifications.check-low-inventory',
+            'notifications.get-latest',
+            'asset-requests.my-requests',
+            'asset-requests.update-status',
+            'asset-requests.show',
+            'asset-requests.create',
+            'asset-requests.store'
         ],
         'staff' => [
             'dashboard.index',
@@ -36,8 +50,20 @@ class RolePermissionMiddleware
             'inventory.data',
             'inventory.transfer',
             'inventory.request',
-            'distributions.use-items'
-
+            'distributions.use-items',
+            'distributions.by-item',
+            'distributions.store',
+            'distributions.use-items',
+            'notifications.index',
+            'notifications.mark-read',
+            'notifications.mark-all-read',
+            'notifications.check-low-inventory',
+            'notifications.get-latest',
+            'asset-requests.my-requests',
+            'asset-requests.update-status',
+            'asset-requests.show',
+            'asset-requests.create',
+            'asset-requests.store'
         ],
     ];
 

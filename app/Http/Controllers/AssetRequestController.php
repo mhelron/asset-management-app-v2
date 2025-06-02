@@ -9,6 +9,7 @@ use App\Models\AssetRequest;
 use App\Models\Inventory;
 use App\Models\User;
 use App\Notifications\ItemRequestNotification;
+use App\Notifications\RequestStatusNotification;
 use App\Helpers\ActivityLogger;
 
 class AssetRequestController extends Controller
@@ -145,6 +146,25 @@ class AssetRequestController extends Controller
         // If approved and item has quantity tracking, we may want to handle that here
         if ($request->status == 'Approved' && $assetRequest->inventory->has_quantity) {
             // Logic to reserve or distribute the item could be added here
+        }
+        
+        // Send notification to the requester about the status change
+        try {
+            $requester = $assetRequest->user;
+            if ($requester) {
+                Log::info('Sending request status notification to user', [
+                    'user_id' => $requester->id,
+                    'user_email' => $requester->email,
+                    'status' => $request->status
+                ]);
+                
+                $requester->notify(new RequestStatusNotification($assetRequest));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send request status notification', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
         
         // Log activity

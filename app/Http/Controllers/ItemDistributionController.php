@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ActivityLogger;
+use App\Notifications\ItemDistributedNotification;
 
 class ItemDistributionController extends Controller
 {
@@ -76,6 +77,26 @@ class ItemDistributionController extends Controller
                     ->with('error', 'Failed to distribute item.');
             }
             
+            // Send notification to the user receiving the items
+            try {
+                $user = User::find($request->user_id);
+                if ($user) {
+                    Log::info('Sending item distribution notification to user', [
+                        'user_id' => $user->id,
+                        'user_email' => $user->email,
+                        'item_id' => $item->id,
+                        'quantity' => $request->quantity
+                    ]);
+                    
+                    $user->notify(new ItemDistributedNotification($distribution));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send distribution notification', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+            
             // Log activity
             ActivityLogger::log(
                 "Distributed {$request->quantity} units of item to user",
@@ -115,10 +136,33 @@ class ItemDistributionController extends Controller
                     ->with('error', "Cannot mark {$request->quantity_used} items as used. Only {$distribution->quantity_remaining} remaining.");
             }
             
+            $previousRemaining = $distribution->quantity_remaining;
+            
             // Mark the items as used
             $distribution->useQuantity($request->quantity_used);
             
             $item = $distribution->inventory;
+            
+            // Check if items are now below threshold after usage
+            // Threshold is set to 3 by default
+            $threshold = 3;
+            if ($previousRemaining > $threshold && $distribution->quantity_remaining <= $threshold && $distribution->quantity_remaining > 0) {
+                try {
+                    // Send low items notification to the user
+                    $user = Auth::user();
+                    $user->notify(new \App\Notifications\UserLowItemsNotification($distribution, $threshold));
+                    
+                    Log::info('Sent low user items notification', [
+                        'user_id' => $user->id,
+                        'distribution_id' => $distribution->id,
+                        'remaining' => $distribution->quantity_remaining
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send low user items notification', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
             // Log activity
             ActivityLogger::log(
