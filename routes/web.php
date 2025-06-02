@@ -14,6 +14,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ItemDistributionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AssetRequestController;
+use App\Http\Controllers\ExcelController;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -159,6 +160,13 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         Route::get('/show/{id}', [AssetRequestController::class, 'show'])->name('asset-requests.show');
         Route::post('/update-status/{id}', [AssetRequestController::class, 'updateStatus'])->name('asset-requests.update-status');
         Route::get('/my-requests', [AssetRequestController::class, 'myRequests'])->name('asset-requests.my-requests');
+    });
+
+    // Excel Import/Export
+    Route::prefix('/excel')->group(function () {
+        Route::post('/generate-template', [ExcelController::class, 'generateTemplate'])->name('excel.generate-template');
+        Route::post('/import', [ExcelController::class, 'import'])->name('excel.import');
+        Route::post('/export', [ExcelController::class, 'export'])->name('excel.export');
     });
 
     // Test route for notifications (only in non-production)

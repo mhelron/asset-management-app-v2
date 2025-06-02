@@ -13,6 +13,7 @@
         "doctrine/dbal": "^4.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "phpoffice/phpspreadsheet": "^4.3",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.18"
     },

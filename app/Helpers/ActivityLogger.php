@@ -95,4 +95,15 @@ class ActivityLogger
     {
         self::log("Archived $resourceType", $identifier);
     }
+    
+    /**
+     * Log a generic activity
+     *
+     * @param string $message The activity message
+     * @return void
+     */
+    public static function logGeneric($message)
+    {
+        self::log($message);
+    }
 } 

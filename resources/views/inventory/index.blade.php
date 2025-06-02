@@ -82,7 +82,40 @@
                             <i class="bi bi-grid-3x3-gap"></i> Grid
                         </button>
                     </div>
-                    <a href="{{ route('inventory.create') }}" class="btn btn-dark"><i class="bi bi-plus-lg me-2"></i>Add Item</a>
+                    <div>
+                        @if(in_array(strtolower(session('user_role')), ['admin', 'manager']))
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-file-excel me-1"></i> Excel
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <form action="{{ route('excel.export') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-download me-1"></i> Export All
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form action="{{ route('excel.generate-template') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-file-earmark me-1"></i> Download Template
+                                        </button>
+                                    </form>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                        <i class="bi bi-upload me-1"></i> Import
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        @endif
+                        <a href="{{ route('inventory.create') }}" class="btn btn-dark"><i class="bi bi-plus-lg me-2"></i>Add Item</a>
+                    </div>
                 </div>
 
                 <div class="card shadow">
@@ -398,6 +431,70 @@
     </div>
 </div>
 
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Inventory Items</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('excel.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="import_file" class="form-label">Select Excel File</label>
+                        <input class="form-control" type="file" id="import_file" name="import_file" accept=".xlsx" required>
+                        <div class="form-text">Only .xlsx files are supported. Please use the template downloaded from the system.</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Tips:</strong>
+                        <ul class="mb-0 ps-3">
+                            <li>Download the template first using the "Download Template" button</li>
+                            <li>Fill in your data in the appropriate category sheets</li>
+                            <li>Required fields are marked with an asterisk (*)</li>
+                            <li>Do not modify any fields marked "DO NOT MODIFY"</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Display import errors if any -->
+@if(session('import_errors'))
+<div class="modal fade" id="importErrorsModal" tabindex="-1" aria-labelledby="importErrorsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="importErrorsModalLabel">Import Errors</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <p><i class="bi bi-exclamation-triangle me-2"></i>The following errors occurred during import:</p>
+                    <ul>
+                        @foreach(session('import_errors') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Archive Modal Handlers
@@ -490,6 +587,13 @@
                 gridViewBtn.click();
             }
         }
+
+        // Show import errors modal if there are errors
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('import_errors'))
+                new bootstrap.Modal(document.getElementById('importErrorsModal')).show();
+            @endif
+        });
     });
 </script>
 
