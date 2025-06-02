@@ -90,6 +90,10 @@
                         <h5 class="m-0 fw-bold">Inventory</h5>
                     </div>
                     <div class="card-body">
+                        <!-- Para sa pag tawag ng roles sa session-->
+                        @php
+                            $role = strtolower(session('user_role'));
+                        @endphp
                         <!-- Table View -->
                         <div id="table-view" class="table-responsive">
                             <table class="table table-striped table-hover">
@@ -144,9 +148,12 @@
                                                 <a href="{{ route('inventory.show', $item->id) }}" class="btn btn-sm btn-dark me-1" title="View">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
+                                                <!-- This is Edit button -->
+                                                @if($role !== 'staff')
                                                 <a href="{{ route('inventory.edit', $item->id) }}" class="btn btn-sm btn-success me-1" title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
+                                                @endif
                                                 <button type="button" class="btn btn-sm btn-warning me-1 transfer-btn" 
                                                     data-bs-toggle="modal" data-bs-target="#transferModal" 
                                                     data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Transfer">
@@ -159,11 +166,14 @@
                                                     <i class="bi bi-hand-index-thumb"></i>
                                                 </button>
                                                 @endif
+                                                <!-- This is Archive button -->
+                                                @if($role !== 'staff')
                                                 <button type="button" class="btn btn-sm btn-danger archive-btn" 
                                                     data-bs-toggle="modal" data-bs-target="#archiveModal" 
                                                     data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Archive">
                                                     <i class="bi bi-archive"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

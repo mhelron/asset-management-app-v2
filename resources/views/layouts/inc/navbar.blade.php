@@ -73,22 +73,22 @@
                 </div>
             </div>
             @endauth
-            <div class="text-light me-2 text-end">
-                <div class="fw-bold" style="font-size: 0.8em;">{{ session('name') }}</div>
-                <div style="font-size: 0.8em;">{{ session('user_role') }}</div>
-            </div>
-            <img src="{{ asset('images/default-user.jpg') }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+            
         </div>
       </div>
     </nav>
     
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="staticBackdropLabel" style="color: fff;">Menu</h5>
+        <div class="offcanvas-header d-flex align-items-center">
+            <img src="{{ asset('images/default-user.jpg') }}" alt="Profile Picture" class="rounded-circle me-2" width="40" height="40">
+            <div class="text-light text-start">
+                <div class="fw-bold" style="font-size: 0.8em; color: rgb(187, 187, 187);">{{ session('name') }}</div>
+                <div style="font-size: 0.8em; color: rgb(187, 187, 187);">{{ session('user_role') }}</div>
+            </div>
+
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
     
-
         <ul class="sidebar-nav">
             @php
                 $role = strtolower(session('user_role'));
