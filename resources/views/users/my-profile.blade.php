@@ -51,6 +51,10 @@
     }
 </style>
 
+<!-- Import jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container">
@@ -95,9 +99,6 @@
                 <div class="card shadow h-100">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2"></i>User Information</h5>
-                        <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="bi bi-pencil-square me-2"></i>Edit
-                        </button>
                     </div>
                     <div class="card-body profile-info">
                         <div class="text-center mb-4">
@@ -146,6 +147,11 @@
                                         return $asset->asset_type_id == $type->id;
                                     })->count();
                                     
+                                    // For Consumables type, add the count of distributed items
+                                    if (strtolower($type->name) === 'consumables') {
+                                        $typeCount = $typeCount + $user->activeItemDistributions->count();
+                                    }
+                                    
                                     // Get the first letter of the type name for the icon
                                     $firstLetter = strtoupper(substr($type->name, 0, 1));
                                 @endphp
@@ -163,21 +169,6 @@
                                     </div>
                                 </div>
                             @endforeach
-                            
-                            @if($user->activeItemDistributions->count() > 0)
-                            <div class="col-md-6 mb-3">
-                                <div class="p-3 rounded-3 bg-light text-center border">
-                                    <div class="d-flex align-items-center justify-content-center mb-2">
-                                        <div class="me-2 letter-icon bg-info bg-opacity-10 text-info" style="width: 40px; height: 40px; font-size: 1.3rem;">
-                                            <i class="bi bi-boxes"></i>
-                                        </div>
-                                        <h5 class="mb-0">Consumable Items</h5>
-                                    </div>
-                                    <h2 class="mb-1">{{ $user->activeItemDistributions->count() }}</h2>
-                                    <p class="text-muted mb-0">Items in Your Inventory</p>
-                                </div>
-                            </div>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -202,19 +193,6 @@
                                     aria-selected="{{ $index == 0 ? 'true' : 'false' }}">{{ $type->name }}</button>
                             </li>
                             @endforeach
-                            
-                            @if($user->activeItemDistributions->count() > 0)
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link px-4 py-3 {{ $tab == 'items' ? 'active' : '' }}" 
-                                    id="items-tab" 
-                                    data-bs-toggle="tab" 
-                                    data-bs-target="#items-tab-pane" 
-                                    type="button" 
-                                    role="tab" 
-                                    aria-controls="items-tab-pane" 
-                                    aria-selected="false">Consumable Items</button>
-                            </li>
-                            @endif
                         </ul>
                         <div class="tab-content mt-4" id="myTabContent">
                             <!-- Dynamic content tabs for each asset type -->
@@ -224,105 +202,112 @@
                                 role="tabpanel" 
                                 aria-labelledby="{{ Str::slug($type->name) }}-tab" 
                                 tabindex="0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Asset</th>
-                                                <th>Category</th>
-                                                <th>Serial Number</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $filteredAssets = $user->assets->filter(function($asset) use ($type) {
-                                                    return $asset->asset_type_id == $type->id;
-                                                });
-                                            @endphp
-                                            
-                                            @forelse($filteredAssets as $asset)
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route('inventory.show', $asset->id) }}" class="text-decoration-none">{{ $asset->item_name }}</a>
-                                                </td>
-                                                <td>{{ $asset->category->category ?? 'N/A' }}</td>
-                                                <td>{{ $asset->serial_no }}</td>
-                                                <td>
-                                                    <span class="badge bg-success">Assigned</span>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr>
-                                                <td colspan="4" class="text-center py-3">No {{ $type->name }} assigned yet</td>
-                                            </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
+                                
+                                @if(strtolower($type->name) === 'consumables')
+                                    <div class="alert alert-info mb-3">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Consumable items</strong> are tracked with quantity and can be marked as used when consumed.
+                                    </div>
+                                    
+                                    <!-- Distributed Items Table -->
+                                    <h5 class="mb-3">Consumable Items</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Item</th>
+                                                    <th>Category</th>
+                                                    <th>Type</th>
+                                                    <th>Assigned Quantity</th>
+                                                    <th>Remaining Quantity</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($user->activeItemDistributions as $distribution)
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('inventory.show', $distribution->inventory->id) }}" class="text-decoration-none">
+                                                            {{ $distribution->inventory->item_name }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ $distribution->inventory->category->category ?? 'N/A' }}</td>
+                                                    <td>{{ $distribution->inventory->assetType->name ?? 'N/A' }}</td>
+                                                    <td>{{ $distribution->quantity_assigned }}</td>
+                                                    <td>
+                                                        @if($distribution->isFullyUsed())
+                                                            <span class="badge bg-secondary">Used (0)</span>
+                                                        @elseif($distribution->isPartiallyUsed())
+                                                            <span class="badge bg-warning">{{ $distribution->quantity_remaining }}</span>
+                                                        @else
+                                                            <span class="badge bg-success">{{ $distribution->quantity_remaining }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($distribution->quantity_remaining > 0)
+                                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#useItemModal"
+                                                                data-id="{{ $distribution->id }}"
+                                                                data-name="{{ $distribution->inventory->item_name }}"
+                                                                data-remaining="{{ $distribution->quantity_remaining }}">
+                                                                <i class="bi bi-check-circle me-1"></i>Mark as Consumed
+                                                            </button>
+                                                        @else
+                                                            <span class="badge bg-secondary px-3 py-2">Fully Used</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-3">No consumable items assigned yet</td>
+                                                </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @elseif(strtolower($type->name) !== 'consumables')
+                                    <!-- Fixed Assets Table -->
+                                    <h5 class="mb-3">{{ $type->name }} Inventory</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Asset</th>
+                                                    <th>Category</th>
+                                                    <th>Serial Number</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $filteredAssets = $user->assets->filter(function($asset) use ($type) {
+                                                        return $asset->asset_type_id == $type->id;
+                                                    });
+                                                @endphp
+                                                
+                                                @forelse($filteredAssets as $asset)
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('inventory.show', $asset->id) }}" class="text-decoration-none">{{ $asset->item_name }}</a>
+                                                    </td>
+                                                    <td>{{ $asset->category->category ?? 'N/A' }}</td>
+                                                    <td>{{ $asset->serial_no }}</td>
+                                                    <td>
+                                                        <span class="badge bg-success">Assigned</span>
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr>
+                                                    <td colspan="4" class="text-center py-3">No {{ $type->name }} assigned yet</td>
+                                                </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
                             </div>
                             @endforeach
-                            
-                            @if($user->activeItemDistributions->count() > 0)
-                            <!-- My Items Tab -->
-                            <div class="tab-pane fade {{ $tab == 'items' ? 'show active' : '' }}" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Item</th>
-                                                <th>Category</th>
-                                                <th>Type</th>
-                                                <th>Assigned Quantity</th>
-                                                <th>Remaining Quantity</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($user->activeItemDistributions as $distribution)
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route('inventory.show', $distribution->inventory->id) }}" class="text-decoration-none">
-                                                        {{ $distribution->inventory->item_name }}
-                                                    </a>
-                                                </td>
-                                                <td>{{ $distribution->inventory->category->category ?? 'N/A' }}</td>
-                                                <td>{{ $distribution->inventory->assetType->name ?? 'N/A' }}</td>
-                                                <td>{{ $distribution->quantity_assigned }}</td>
-                                                <td>
-                                                    @if($distribution->isFullyUsed())
-                                                        <span class="badge bg-secondary">Used (0)</span>
-                                                    @elseif($distribution->isPartiallyUsed())
-                                                        <span class="badge bg-warning">{{ $distribution->quantity_remaining }}</span>
-                                                    @else
-                                                        <span class="badge bg-success">{{ $distribution->quantity_remaining }}</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if($distribution->quantity_remaining > 0)
-                                                        <button type="button" class="btn btn-sm btn-primary" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#useItemModal"
-                                                            data-id="{{ $distribution->id }}"
-                                                            data-name="{{ $distribution->inventory->item_name }}"
-                                                            data-remaining="{{ $distribution->quantity_remaining }}">
-                                                            <i class="bi bi-check-circle me-1"></i>Mark as Consumed
-                                                        </button>
-                                                    @else
-                                                        <span class="badge bg-secondary px-3 py-2">Fully Used</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr>
-                                                <td colspan="6" class="text-center py-3">No items assigned yet</td>
-                                            </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -419,6 +404,19 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Fix for edit profile modal
+        const editProfileBtn = document.querySelector('[data-bs-target="#editProfileModal"]');
+        if (editProfileBtn) {
+            editProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const modal = document.getElementById('editProfileModal');
+                if (modal) {
+                    // Using jQuery to ensure the modal works
+                    $('#editProfileModal').modal('show');
+                }
+            });
+        }
+        
         // Handle use item modal
         const useItemModal = document.getElementById('useItemModal');
         if (useItemModal) {
@@ -446,12 +444,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
         
-        // Activate the correct tab based on URL parameter
+        // Activate the Consumables tab if previously on 'items' tab
         if (tabParam === 'items') {
-            const itemsTab = document.getElementById('items-tab');
-            if (itemsTab) {
-                const tab = new bootstrap.Tab(itemsTab);
-                tab.show();
+            const consumablesTab = document.querySelector('button[id$="consumables-tab"]');
+            if (consumablesTab) {
+                consumablesTab.click();
             }
         }
     });

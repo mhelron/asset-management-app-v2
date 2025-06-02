@@ -52,6 +52,7 @@ Route::middleware(['auth' , 'role.permission'])->group(function () {
         
         // My Profile routes
         Route::get('/my-profile', [UserController::class, 'myProfile'])->name('users.my-profile');
+        Route::get('/edit-profile', [UserController::class, 'editProfile'])->name('users.edit-profile');
         Route::post('/update-my-profile', [UserController::class, 'updateMyProfile'])->name('users.update-my-profile');
     });
 

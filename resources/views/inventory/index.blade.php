@@ -159,7 +159,7 @@
                                                     <i class="bi bi-hand-index-thumb"></i>
                                                 </button>
                                                 @endif
-                                                <button type="button" class="btn btn-sm btn-secondary archive-btn" 
+                                                <button type="button" class="btn btn-sm btn-danger archive-btn" 
                                                     data-bs-toggle="modal" data-bs-target="#archiveModal" 
                                                     data-id="{{ $item->id }}" data-name="{{ $item->item_name }}" title="Archive">
                                                     <i class="bi bi-archive"></i>
@@ -238,7 +238,7 @@
                                             <i class="bi bi-hand-index-thumb"></i>
                                         </button>
                                         @endif
-                                        <button type="button" class="btn btn-sm btn-secondary archive-btn" 
+                                        <button type="button" class="btn btn-sm btn-danger archive-btn" 
                                             data-bs-toggle="modal" data-bs-target="#archiveModal" 
                                             data-id="{{ $item->id }}" data-name="{{ $item->item_name }}">
                                             <i class="bi bi-archive"></i>

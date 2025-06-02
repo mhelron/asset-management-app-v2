@@ -265,6 +265,20 @@ class UserController extends Controller
         return view('users.my-profile', compact('user', 'assetTypes', 'assetTypeStats', 'tab'));
     }
     
+    public function editProfile()
+    {
+        // Get the current authenticated user's ID
+        $userId = Auth::id();
+        
+        if (!$userId) {
+            return redirect()->route('login.form')->with('error', 'User not authenticated');
+        }
+        
+        $user = User::findOrFail($userId);
+        
+        return view('users.edit-profile', compact('user'));
+    }
+    
     public function updateMyProfile(Request $request)
     {
         // Get the current authenticated user's ID
